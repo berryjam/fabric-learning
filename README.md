@@ -127,7 +127,7 @@ fabric通过*排序节点*提供*事务排序*服务，能够保证事务分发�
 
 下面将结合fabric的源码来进一步描述`broadcast`以及`deliver`这两个用于保证共识的关键API。因为区块链的最大贡献是**价值共识**，价值共识的核心是**共识算法**。而共识算法的实现细节都体现在这两个API里面，所以对这两个API深入分析，有助于理解fabric系统的架构。
 
-在分析源码前，先介绍fabric的典型事务处理过程，如图2所示，下面内容参考[极客头条](http://geek.csdn.net/news/detail/235518)：
+在分析源码前，先介绍fabric的典型事务处理过程，如图2所示，下图参考[极客头条](http://geek.csdn.net/news/detail/235518)：
 </br>
 <div align="center">
 <img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph2.png?raw=true">
