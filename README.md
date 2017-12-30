@@ -76,7 +76,7 @@ KVS操作可以使用下面的形式化表示：
 账本由排序服务（参见[1.3.3节](TODO)）构建的,以（有效或无效）事务块的完全有序的哈希链存在。哈希链会强制约束账本中的区块顺序，并且每个区块会包含一组完全有序的事务。这就强制约束着整个账本里面的所有事务的顺序。因此账本、区块、事务间的关系可以用图1所示:
 
 <div align="center">
-<img src="http://code.huawei.com/h00422858/shared/raw/7d4a7bf841d49dc5e9a802101503c92cdc56386a/hyperledger/fabric/markdown_graph/graph1.PNG">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph1.png?raw=true">
 </div>
 
 账本保存在所有peer节点中，并可选地，保存在一个orderer节点子集中。在orderer上下文中，我们把`OrdererLedger`称为账本，而在peer上下文中，我们把`PeerLedger`称为账本。`PeerLedger`与`OrdererLedger`的不同之处在于，peer节点会在本地维护一个比特位掩码，这个比特位掩码用于区分有效事务和无效事务。（更多细节参见[2.4节](TODO)）
