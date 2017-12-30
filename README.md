@@ -125,4 +125,10 @@ fabric通过*排序节点*提供*事务排序*服务，能够保证事务分发�
 - `broadcast(blob)`:客户端调用这个接口能够在channel中广播任意消息`blob`。在向服务发送请求时，这在BFT（拜占庭）系统中也叫做`request(blob)`。
 - `deliver(seqno,prevhash,blob)`:排序服务通过在peer节点上调用这个接口来分发消息`blob`，消息都会有一个非负整数序列号`seqno`，以及前一个区块的hash值（`prevhash`）。换句话说，这是来自ordering服务的输出。`deliver()`在pub-sub系统中有时候被称为`notify()`，在BFT系统中被称为`commit()`。
 
-下面将结合fabric的源码来进一步描述`broadcast`以及`deliver`这两个用于保证共识的关键API。因为区块链的最大贡献是**价值共识**，而价值共识的核心是**共识算法**。最后fabric系统
+下面将结合fabric的源码来进一步描述`broadcast`以及`deliver`这两个用于保证共识的关键API。因为区块链的最大贡献是**价值共识**，价值共识的核心是**共识算法**。而共识算法的实现细节都体现在这两个API里面，所以对这两个API深入分析，有助于理解fabric系统的架构。
+
+在分析源码前，先介绍fabric的典型事务处理过程，如图2所示，下面内容参考[极客头条](http://geek.csdn.net/news/detail/235518)：
+
+</br>
+
+w1
