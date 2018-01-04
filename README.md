@@ -144,3 +144,36 @@ fabric通过*排序节点*提供*事务排序*服务，能够保证事务分发�
 - **ordere节点**：仅负责排序。为网络中所有合法事务进行全局排序，并将一批排序后的事务组合生成区块结构，orderer一般不直接读写账本和执行具体事务。
 
 - **CA**：负责网络中所有证书的管理（分发、撤销等），实现标准的PKI架构。CA在签发证书后，自身也不参与到网络中的事务过程。
+
+#### 1.3.3.2 broadcast、deliver接口分析
+
+fabric网络里节点都是通过[gRPC](https://grpc.io/docs/tutorials/basic/go.html)来实现通信的，所以从gRPC入口分析**broadcast**和**deliver**。这两个接口定义在hyperledger/fabric/protos/orderer/ab.proto的AtomicBroadcast服务里。
+```golang
+service AtomicBroadcast {
+    // broadcast receives a reply of Acknowledgement for each common.Envelope in order, indicating success or type of failure
+    rpc Broadcast(stream common.Envelope) returns (stream BroadcastResponse) {}
+
+    // deliver first requires an Envelope of type DELIVER_SEEK_INFO with Payload data as a mashaled SeekInfo message, then a stream of block replies is received.
+    rpc Deliver(stream common.Envelope) returns (stream DeliverResponse) {}
+}
+```
+
+从上面的proto可以发现Broadcast、Deliver都是**双向流式RPC接口**，客户端在调用Broadcast接口时是不断地发送请求Envelope，服务端也会对每个请求Envelope进行处理并返回BroadcastResponse，每发送一个Envelope就会收到一个BroadcastResponse。读到这里可能会有疑问，`Broadcast、Deliver这两个接口的客户端和服务端分别是什么，Broadcast具体广播什么消息，Deliver具体又是接收什么消息呢？`
+
+- 先回答Broadcast的客户端是什么这个问题。通过分析Broadcast的gRPC客户端接口可以发现，广播的接口是在hyperledger/fabric/peer/common/ordererclient.go里面定义的，从代码所在路径就大致才到Broadcast的客户端就是peer节点，另外从代码注释和文件名同样可以猜测到Broadcast的服务端就是orderer节点。
+
+```golang
+type BroadcastClient interface {
+	//Send data to orderer
+	Send(env *cb.Envelope) error
+	Close() error
+}
+```
+继续分析BroadcastClient接口的Send方法的调用的地方有这么几处：**调用链代码ChaincodeInvokeOrQuery**，**发起创建channel事务sendCreateChainTransaction**、**初始化链代码IsccInstantiate**、**更新链代码chaincodeUpgrade**、**发起更新channel事务update**。这些调用方都是peer节点，所以可以确认Broadcast的客户端就是peer节点。需要注意的是初始化、调用、更新链代码，或者是创建、更新channel，这些请求都是由用户APP／SDK发起的，peer不会主动发起。但实际中App／SDK不会向orderer直接发送请求，如图2第3步所示，APP／SDK会向peer节点发送请求，再由peer节点进行转发调用orderer的Broadcast接口，向所有orderer节点广播消息。
+
+<div align="left">
+
+</div>
+不会
+不会
+
