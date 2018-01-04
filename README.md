@@ -181,7 +181,99 @@ type BroadcastClient interface {
 <img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph4.png?raw=true">
 </div>
 
-再对广播消息结构**Header**说
-不会
-不会
+在广播消息中引入头部**Header**是为了防范[重放攻击](https://zh.wikipedia.org/wiki/%E9%87%8D%E6%94%BE%E6%94%BB%E5%87%BB),并且头部可以作为签名数据的身份信息。字段信息如下：
+
+- **type:** 头部类型，proto文件并没有详细说明，分析代码hyperledger/fabric/protos/common/common.pb.go，可以知道一共有8种类型消息，每种类型的消息处理方式不一样。比如CONFIG_UPDATE,表示这是一个更新配置的信息，那么广播消息的data就是ConfigUpdateEnvelope配置增量的序列化数据（hyperledger/fabric/peer/channel/create.go sanityCheckAndSignConfigTx)；
+
+<div align="center">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph6.png?raw=true">
+</div>
+
+- **version:** 用于制定消息协议版本；
+- **timestamp:** 发送者创建消息的时间；
+- **channel_id:** 消息所属的channel，*这就意味着广播只是特定channel的广播*;
+- **tx_id:** 端到端唯一的事务id，通常由用户或SDK生成，背书节点会对事务id进行唯一性检查，peer节点也会执行检查，最后写入账本；
+- **epoch:** 头部创建时间，基于[区块高度](https://www.jianshu.com/p/2d4f616cb542)来定义。这个时间用于表示某个逻辑发生的时间段，类似于raft的term的概念。peer要接受proposal时，epoch需要满足两个条件： 1.peer当前epoch与收到的消息的epoch要相等 2.收到的消息在当前epoch时间段内只出现过一次（不能重复）；
+- **extension:** 扩展字段；
+- **tls_cert_hash:** 客户端TLS证书的hash值；
+- **creator:** 消息的创建者，为msp.SerializedIdentity的序列化数据；
+- **nonce:** 随机数，用于检测是否存在重放攻击；
+- **data:** 在说明type时候已经描述过，data存放的数据依赖于消息类型；
+- **signature:** 签名，用于校验消息是否被篡改。
+
+分析完Broadcast的客户端接口和广播消息，接下来就需要分析Broadcast的服务端接口，orderer节点如何处理接收到的广播消息。目前**fabric的peer节点还没实现或支持BroadcastServer**，而orderer节点的BroadcastServer的代码在hyperledger/fabric/orderer/common/broadcast/broadcast.go的`func (bh *handlerImpl) Handle(srv ab.AtomicBroadcast_BroadcastServer) error`方法里。
+
+```golang
+// Handle starts a service thread for a given gRPC connection and services the broadcast connection
+func (bh *handlerImpl) Handle(srv ab.AtomicBroadcast_BroadcastServer) error {
+	addr := util.ExtractRemoteAddress(srv.Context())
+	logger.Debugf("Starting new broadcast loop for %s", addr)
+	for {
+		msg, err := srv.Recv() // 典型的双向流式gRPC处理流程，接收一个消息处理一个消息
+		if err == io.EOF { // 本次连接的消息已经接收完毕，处理流程结束
+			logger.Debugf("Received EOF from %s, hangup", addr)
+			return nil
+		}
+		if err != nil {
+			logger.Warningf("Error reading from %s: %s", addr, err)
+			return err
+		}
+
+		chdr, isConfig, processor, err := bh.sm.BroadcastChannelSupport(msg) // 从消息中提取Channel header，判断是否为更新配置消息，processor为专门用于处理指定channel的处理器（类型为ChainSupport）
+		if err != nil {
+			logger.Warningf("[channel: %s] Could not get message processor for serving %s: %s", chdr.ChannelId, addr, err)
+			return srv.Send(&ab.BroadcastResponse{Status: cb.Status_INTERNAL_SERVER_ERROR, Info: err.Error()})
+		}
+
+		if err = processor.WaitReady(); err != nil { // 阻塞当前goroutine，直到processor能够处理新的，这是为了保证之前的消息被完全处理前不被新接收的消息影响
+			logger.Warningf("[channel: %s] Rejecting broadcast of message from %s with SERVICE_UNAVAILABLE: rejected by Consenter: %s", chdr.ChannelId, addr, err)
+			return srv.Send(&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: err.Error()})
+		}
+
+		if !isConfig { // 不是更新配置消息
+			logger.Debugf("[channel: %s] Broadcast is processing normal message from %s with txid '%s' of type %s", chdr.ChannelId, addr, chdr.TxId, cb.HeaderType_name[chdr.Type])
+
+			configSeq, err := processor.ProcessNormalMsg(msg) // 处理普通消息，如构建genesis block事务、peer加入channel事务，检查当前消息是否合法（如消息长度是否合法、消息是否为空、消息的policy是否合法等），并返回当前配置的序列号
+			if err != nil {
+				logger.Warningf("[channel: %s] Rejecting broadcast of normal message from %s because of error: %s", chdr.ChannelId, addr, err)
+				return srv.Send(&ab.BroadcastResponse{Status: ClassifyError(err), Info: err.Error()})
+			}
+
+			err = processor.Order(msg, configSeq) // 对消息进行排序、打包为区块，然后把区块写入到账本。fabric架构有3种不同的order模式，分别为solo、kafka、sbft这3种模式，不同的模式对消息的处理会不同。比如solo、kafka这两种模式会对消息按顺序组织成消息流、再对消息流切割为区块，最后把区块写入到账本；而sbft模式会把消息组织成块，再对块进行排序，最后写入到账本。
+			if err != nil {
+				logger.Warningf("[channel: %s] Rejecting broadcast of normal message from %s with SERVICE_UNAVAILABLE: rejected by Order: %s", chdr.ChannelId, addr, err)
+				return srv.Send(&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: err.Error()})
+			}
+		} else { // isConfig
+			logger.Debugf("[channel: %s] Broadcast is processing config update message from %s", chdr.ChannelId, addr)
+
+			config, configSeq, err := processor.ProcessConfigUpdateMsg(msg)
+			if err != nil {
+				logger.Warningf("[channel: %s] Rejecting broadcast of config message from %s because of error: %s", chdr.ChannelId, addr, err)
+				return srv.Send(&ab.BroadcastResponse{Status: ClassifyError(err), Info: err.Error()})
+			}
+
+			err = processor.Configure(config, configSeq)
+			if err != nil {
+				logger.Warningf("[channel: %s] Rejecting broadcast of config message from %s with SERVICE_UNAVAILABLE: rejected by Configure: %s", chdr.ChannelId, addr, err)
+				return srv.Send(&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: err.Error()})
+			}
+		}
+
+		logger.Debugf("[channel: %s] Broadcast has successfully enqueued message of type %s from %s", chdr.ChannelId, cb.HeaderType_name[chdr.Type], addr)
+
+		err = srv.Send(&ab.BroadcastResponse{Status: cb.Status_SUCCESS})
+		if err != nil {
+			logger.Warningf("[channel: %s] Error sending to %s: %s", chdr.ChannelId, addr, err)
+			return err
+		}
+	}
+}
+```
+solo和kafka两种模式的order过程可参考[知乎文章](https://zhuanlan.zhihu.com/p/25358777),对应的时序分别如图7、8所示。
+
+<div align="center">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph7.png?raw=true">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph8.png?raw=true">
+</div>
 
