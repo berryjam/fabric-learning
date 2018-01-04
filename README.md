@@ -172,8 +172,16 @@ type BroadcastClient interface {
 继续分析BroadcastClient接口的Send方法的调用的地方有这么几处：**调用链代码ChaincodeInvokeOrQuery**，**发起创建channel事务sendCreateChainTransaction**、**初始化链代码IsccInstantiate**、**更新链代码chaincodeUpgrade**、**发起更新channel事务update**。这些调用方都是peer节点，所以可以确认Broadcast的客户端就是peer节点。需要注意的是初始化、调用、更新链代码，或者是创建、更新channel，这些请求都是由用户APP／SDK发起的，peer不会主动发起。但实际中App／SDK不会向orderer直接发送请求，如图2第3步所示，APP／SDK会向peer节点发送请求，再由peer节点进行转发调用orderer的Broadcast接口，向所有orderer节点广播消息。
 
 <div align="left">
-
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph3.png?raw=true">
 </div>
+
+到这里，Broadcast具体是广播什么消息这个问题也就显而易见，就是广播调用初始化、调用、更新链代码，创建、更新channel这些消息（Envelope），当然这些信息都是经过peer签名的。如hyperledger/fabirc/peer/channel/create.go的创建channel方法第159行，通过校验后进行签名再进行广播（170行）。通过进一步分析Envelope的proto文件hyperledger/fabric/protos/common/common.proto，广播消息的详细内容如图4所示。
+
+<div align="center">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph4.png?raw=true">
+</div>
+
+再对广播消息结构**Header**说
 不会
 不会
 
