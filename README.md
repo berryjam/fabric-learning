@@ -273,7 +273,7 @@ func (bh *handlerImpl) Handle(srv ab.AtomicBroadcast_BroadcastServer) error {
 solo和kafka两种模式的order过程可参考[知乎文章](https://zhuanlan.zhihu.com/p/25358777),对应的时序分别如图7、8所示。
 
 <div align="center">
-<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph7.png?raw=true" height="200" width="200">
-<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph8.png?raw=true">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph7.png?raw=true" height="800" width="800">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph8.png?raw=true" height="800" width="800">
 </div>
 
