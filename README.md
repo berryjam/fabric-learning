@@ -116,9 +116,9 @@ fabric通过*排序节点*提供*事务排序*服务，能够保证事务分发�
 
 排序服务为客户端和peer节点提供共享的*通信channel*，为包含事务的消息提供广播服务。客户端连接到channel并且可能通过channel广播消息，然后这些消息会被分发到peer节点。channel能够支持所有消息的*原子*交付，即全部顺序的交付和（实现特定）可靠性的消息通信。换句话说，channel向所有连接的peer节点输出相同的消息，并以相同的逻辑顺序输出到所有连接的peer节点。这种原子通信保证也被称为*toral-order broadcast*、*atomic broadcast*，在分布式系统中也被称为*consensus(共识)*。传达的消息是包含在区块链状态中的候选事务。
 
-**分区（排序服务channel）.**排序服务可以支持与发布／订阅（pub／sub）消息传递系统的*topic*类似的多个*channel*。客户端可以连接到特定的channel，然后可以发送消息和获取到达的消息。channel可以被认为是分区，连接到某个channel的客户端是不感知其他channel的存在的，但是客户端可能连接到多个channel。尽管Hyperledger Fabric中包含的一些排序服务实现支持多个channel，但为了简化表示，在文档的其余部分，我们假设排序服务由单个channel／topic组成。
+**分区（排序服务channel）**.排序服务可以支持与发布／订阅（pub／sub）消息传递系统的*topic*类似的多个*channel*。客户端可以连接到特定的channel，然后可以发送消息和获取到达的消息。channel可以被认为是分区，连接到某个channel的客户端是不感知其他channel的存在的，但是客户端可能连接到多个channel。尽管Hyperledger Fabric中包含的一些排序服务实现支持多个channel，但为了简化表示，在文档的其余部分，我们假设排序服务由单个channel／topic组成。
 
-**排序服务API.**peer节点通过排序服务提供的接口连接到提供排序服务的channel。排序服务API由两种操作组成（更广泛地说是两种异步事件）。
+**排序服务API**.peer节点通过排序服务提供的接口连接到提供排序服务的channel。排序服务API由两种操作组成（更广泛地说是两种异步事件）。
 
 **TODO**补充用于获取客户端／peer制定序列号下特定的区块API介绍。
 
