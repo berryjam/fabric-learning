@@ -277,3 +277,5 @@ solo和kafka两种模式的order过程可参考[知乎文章](https://zhuanlan.z
 <img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph8.png?raw=true" height="400" width="250">
 </div>
 
+- 到此，前面提到的与Broadcast接口相关的问题都通过分析解答，但是Broadcast接口最后的处理流程只是把事务写入到账本，`Deliver接口跟Broadcast什么关系？它的客户端、服务端又是什么？这个接口具体要完成什么功能？`带着这些疑问，继续分析Deliver接口的源码，**毕竟只看说明文档会忽略掉很多细节，容易让人产生误解**。
+
