@@ -279,3 +279,36 @@ solo和kafka两种模式的order过程可参考[知乎文章](https://zhuanlan.z
 
 - 至此，前面提到的与Broadcast接口相关的问题都通过分析得到答案，但是Broadcast接口最后的处理流程只是把事务写入到账本，`Deliver接口跟Broadcast什么关系？它的客户端、服务端又是什么？这个接口具体要完成什么功能？`带着这些疑问，继续分析Deliver接口的源码，**毕竟只看说明文档会忽略掉很多细节，导致理解不全面**。
 
+fabric对Deliver的gRPC的接口进行了封装，代码在hyperledger/fabric/core/deliverservice/blocksprovider/blocksprovider.go
+```golang
+// BlocksDeliverer defines interface which actually helps
+// to abstract the AtomicBroadcast_DeliverClient with only
+// required method for blocks provider.
+// This also decouples the production implementation of the gRPC stream
+// from the code in order for the code to be more modular and testable.
+type BlocksDeliverer interface {
+	// Recv retrieves a response from the ordering service
+	Recv() (*orderer.DeliverResponse, error)
+
+	// Send sends an envelope to the ordering service
+	Send(*common.Envelope) error
+}
+```
+Send方法的调用最终都是来自于
+
+hyperledger/fabric/core/deliverservice/requested.go.seekLatestFromCommitter
+																-  RequestBlocks
+																   - deliverservice/deliverclient.go.newClient
+																   		- deliverservice/deliverclient.go.StartDeliverForChannel
+																   			- hyperledger/fabric/gossip/service/gossip_service.go.InitializeChannel
+																   			- hyperledger/fabric/gossip/service/gossip_service.go.onStatusChangeFactory
+																   				- hyperledger/fabric/gossip/service/gossip_service.go.InitializeChannel
+																   					- hyperledger/fabric/core/peer/peer.go.createChain
+																   						- hyperledger/fabric/core/peer/peer.go.CreateChainFromBlock
+																   							- hyperledger/fabric/core/scc/cscc/configure.go.joinChannel
+																   								- hyperledger/fabric/core/scc/cscc/configure.go.Invoke
+																   									- hyperledger/fabric/core/chaincode/shim/handler.go.handleTransaction
+																   										- hyperledger/fabric/core/chaincode/shim/chaincode.go.chatWithPeer
+																   						- hyperledger/fabric/core/peer/peer.go.Initialize
+																   							- hyperledger/fabric/peer/node/start.go.serve
+																   								- hyperledger/fabric/peer/node/start.go.nodeStartCmd
