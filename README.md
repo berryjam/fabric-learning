@@ -295,20 +295,3 @@ type BlocksDeliverer interface {
 }
 ```
 Send方法的调用最终都是来自于
-
-hyperledger/fabric/core/deliverservice/requested.go.seekLatestFromCommitter
-																-  RequestBlocks
-																   - deliverservice/deliverclient.go.newClient
-																   		- deliverservice/deliverclient.go.StartDeliverForChannel
-																   			- hyperledger/fabric/gossip/service/gossip_service.go.InitializeChannel
-																   			- hyperledger/fabric/gossip/service/gossip_service.go.onStatusChangeFactory
-																   				- hyperledger/fabric/gossip/service/gossip_service.go.InitializeChannel
-																   					- hyperledger/fabric/core/peer/peer.go.createChain
-																   						- hyperledger/fabric/core/peer/peer.go.CreateChainFromBlock
-																   							- hyperledger/fabric/core/scc/cscc/configure.go.joinChannel
-																   								- hyperledger/fabric/core/scc/cscc/configure.go.Invoke
-																   									- hyperledger/fabric/core/chaincode/shim/handler.go.handleTransaction
-																   										- hyperledger/fabric/core/chaincode/shim/chaincode.go.chatWithPeer
-																   						- hyperledger/fabric/core/peer/peer.go.Initialize
-																   							- hyperledger/fabric/peer/node/start.go.serve
-																   								- hyperledger/fabric/peer/node/start.go.nodeStartCmd
