@@ -390,7 +390,9 @@ func (ds *deliverServer) deliverBlocks(srv ab.AtomicBroadcast_DeliverServer, env
 ```
 上述代码的的时序图如图9所示，参考[知乎文章](https://pic1.zhimg.com/50/v2-58d6c7bf7ce19ee59c4f72d52f540a15_hd.jpg)
 
-
+<div align="center">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph9.jpg?raw=true">
+</div>
 
 到这里，ordering service的相关接口
 
