@@ -294,4 +294,103 @@ type BlocksDeliverer interface {
 	Send(*common.Envelope) error
 }
 ```
-Send方法的调用最终都是来自于
+
+Send方法的最终调用方有两处，一处是hyperledger/fabric/core/chaincode/shim/chaincode.go的chatWithPeer，一处是hyperledger/peer/node/start.go的nodeStartCmd命令。其中第一处是客户端在调用链代码时，链代码需要与peer通信。链代码在状态变化过程中（处理事务前）需要回调peer来更新账本信息。而第二处是peer节点在启动中，通过[gossip协议](http://hyperledger-fabric.readthedocs.io/en/latest/gossip.html)从peer所加入的channel里面获取区块信息。所以`两处的最终调用方可归结为一处，deliver接口的客户端就是peer节点。`
+
+- 从BlocksDeliverer的Send接口也可以看出deliver的内容与广播接口Broadcast一样，如图4所示。前面在介绍图4广播消息的结构的时候，已经提到过如果消息Header的type不一样，那么消息的data携带的信息也就不一样。而deliver client所发送的消息Header的类型都是HeaderType_CONFIG_UPDATE，data为seekInfo，如下面代码所示：
+
+```golang
+func (b *blocksRequester) seekOldest() error {
+	seekInfo := &orderer.SeekInfo{
+		Start:    &orderer.SeekPosition{Type: &orderer.SeekPosition_Oldest{Oldest: &orderer.SeekOldest{}}},
+		Stop:     &orderer.SeekPosition{Type: &orderer.SeekPosition_Specified{Specified: &orderer.SeekSpecified{Number: math.MaxUint64}}},
+		Behavior: orderer.SeekInfo_BLOCK_UNTIL_READY,
+	}
+
+	//TODO- epoch and msgVersion may need to be obtained for nowfollowing usage in orderer/configupdate/configupdate.go
+	msgVersion := int32(0)
+	epoch := uint64(0)
+	// 消息类型为HeaderType_CONFIG_UPDATE，data为seekInfo
+	env, err := utils.CreateSignedEnvelope(common.HeaderType_CONFIG_UPDATE, b.chainID, localmsp.NewSigner(), seekInfo, msgVersion, epoch)
+	if err != nil {
+		return err
+	}
+	return b.client.Send(env) // deliver客户端发送消息
+}
+
+func (b *blocksRequester) seekLatestFromCommitter(height uint64) error {
+	seekInfo := &orderer.SeekInfo{
+		Start:    &orderer.SeekPosition{Type: &orderer.SeekPosition_Specified{Specified: &orderer.SeekSpecified{Number: height}}},
+		Stop:     &orderer.SeekPosition{Type: &orderer.SeekPosition_Specified{Specified: &orderer.SeekSpecified{Number: math.MaxUint64}}},
+		Behavior: orderer.SeekInfo_BLOCK_UNTIL_READY,
+	}
+
+	//TODO- epoch and msgVersion may need to be obtained for nowfollowing usage in orderer/configupdate/configupdate.go
+	msgVersion := int32(0)
+	epoch := uint64(0)
+	// 消息类型为HeaderType_CONFIG_UPDATE，data为seekInfo
+	env, err := utils.CreateSignedEnvelope(common.HeaderType_CONFIG_UPDATE, b.chainID, localmsp.NewSigner(), seekInfo, msgVersion, epoch)
+	if err != nil {
+		return err
+	}
+	return b.client.Send(env) // deliver客户端发送消息
+}
+```
+
+seekInfo有3个字段，分别为Start、Stop、Behavior，Start、Stop表示起始区块高度、结束区块高度，Behavior表示直到区块状态ready为止。接着分析deliver客户端接口返回的内容是什么以及peer是怎么处理deliver接口返回的内容，代码在hyperledger/fabric/coredeliverservice/blocksprovider/blocksprovider.go的DeliverBlocks方法里。由于篇幅有限，代码就不贴了，读者可仔细分析。返回内容就是最开始的gRPC Deliver接口所定义的DeliverResponse，peer通过gRPC从order节点获取DeliverResponse，当DeliverResponse状态为Succ时，会包含区块数据，peer再把区块数据封装成gossip消息，利用gossip协议把区块数据同步到不同的peer节点，使得peer节点的账本数据保持一致。`那么从前面的内容，大致就可以推测出deliver接口的作用就是peer节点从order节点里面获取区块数据，这些区块数据范围在高度Start、Stop，并且状态为ready。当成功返回区块时，peer节点会继续把区块数据同步到各个peer节点。`推测仅仅时推测，我们需要从deliver的服务端接口区验证。
+
+- 现在通过分析deliver的服务端接口来解答最后一个疑问和验证我们的推测是正确的。
+
+Deliver的gRPC服务端接口代码在hyperledger/fabric/common/deliver/deliver.go的deliverBlocks方法里，这里的逻辑比较复杂并且限于篇幅，只能分析核心逻辑。`希望读者能进行详尽的分析，并且经过自己的分析，理解会更深刻些：）` deliverBlocks的核心逻辑如下：
+
+```golang
+func (ds *deliverServer) deliverBlocks(srv ab.AtomicBroadcast_DeliverServer, envelope *cb.Envelope) error {
+// ...
+
+	for {
+		if seekInfo.Behavior == ab.SeekInfo_FAIL_IF_NOT_READY {
+			if number > chain.Reader().Height()-1 {
+				return sendStatusReply(srv, cb.Status_NOT_FOUND)
+			}
+		}
+
+		// seekInfo.Behavior为ready
+		block, status := nextBlock(cursor, erroredChan) // 获取下一个区块数据，准备发送
+		if status != cb.Status_SUCCESS {
+			cursor.Close()
+			logger.Errorf("[channel: %s] Error reading from channel, cause was: %v", chdr.ChannelId, status)
+			return sendStatusReply(srv, status)
+		}
+		// increment block number to support FAIL_IF_NOT_READY deliver behavior
+		number++ // 增加区块
+
+		currentConfigSequence := chain.Sequence()
+		if currentConfigSequence > lastConfigSequence {
+			lastConfigSequence = currentConfigSequence
+			if err := sf.Apply(envelope); err != nil {
+				logger.Warningf("[channel: %s] Client authorization revoked for deliver request from %s: %s", chdr.ChannelId, addr, err)
+				return sendStatusReply(srv, cb.Status_FORBIDDEN)
+			}
+		}
+
+		logger.Debugf("[channel: %s] Delivering block for (%p) for %s", chdr.ChannelId, seekInfo, addr)
+
+		if err := sendBlockReply(srv, block); err != nil { // 通过gRPC，向peer节点返回DeliverResponse
+			logger.Warningf("[channel: %s] Error sending to %s: %s", chdr.ChannelId, addr, err)
+			return err
+		}
+
+		if stopNum == block.Header.Number {
+			break // 直到当前区块的高度等于stopNum为止
+		}
+	}
+
+// ...
+}
+```
+上述代码的的时序图如图9所示，参考[知乎文章](https://pic1.zhimg.com/50/v2-58d6c7bf7ce19ee59c4f72d52f540a15_hd.jpg)
+
+
+
+到这里，ordering service的相关接口
+
