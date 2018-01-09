@@ -394,5 +394,17 @@ func (ds *deliverServer) deliverBlocks(srv ab.AtomicBroadcast_DeliverServer, env
 <img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/graph9.jpg?raw=true">
 </div>
 
-到这里，ordering service的相关接口// TODO
+到这里，ordering service的相关接口已经介绍完毕。
+
+
+#### 1.3.3.2 账本和区块
+
+账本（请参见[1.2.2节](https://github.com/berryjam/fabric-learning#122-%E8%B4%A6%E6%9C%AC)）包含ordering service输出的所有数据。简而言之，它是一系列`deliver(seqno, prevhash, blob)`事件，根据之前描述的`prevhash`的计算形成一个哈希链。
+
+大多数情况下，出于效率的原因，ordering service不会输出单个事务（blob)，而是在单个`delvier`事件对blob进行分组（按批处理），组织成区块作为输出。在这种情况下，ordering service必须对每个区块的blob按一个确定的序列进行排序。一个区块的blob数量是在实现ordering service的时候动态选择的，数量并不固定。
+
+在下面，为了便于表述，假设每个`deliver`事件只包含一个blob。我们将定义ordering service属性（本小节其余部分），并解析事务的([背书流程](TODO)）。假设一个区块的`deliver`事件对应于一个区块内每个blob的单独`deliver`事件的序列，则根据上面提到的在一个区块内的blob的确定性排序，这些很容易扩展到块。
+
+#### 1.3.3.3 Ordering service属性
+
 
