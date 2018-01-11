@@ -419,14 +419,14 @@ Ordering service（或原子广播channel）的保证规定了广播消息发生
 
 总之，Ordering service确保以下属性，这些属性又是保证整个区块链系统正常运行：
 
-- Agreement.对于任何两个在正确peer节点上的deliver事件`deliver(seqno,prevhash0,blob0)`和`deliver(seqno,prevhash1,blob1)`，如果`seqno`相等，那么`prevhash0==prevhash1`并且`blob0==blob1`。
+- *Agreement*.对于任何两个在正确peer节点上的deliver事件`deliver(seqno,prevhash0,blob0)`和`deliver(seqno,prevhash1,blob1)`，如果`seqno`相等，那么`prevhash0==prevhash1`并且`blob0==blob1`。
 
-- Hashchain integrity.对于任何两个在正确节点上的deliver事件`deliver(seqno-1,prevhash0,blob0)`和`deliver(seqno,prevhash,blob)`,`prevhash = HASH(seqno01 || prevhash0 || blob0)`；
+- *Hashchain integrity*.对于任何两个在正确节点上的deliver事件`deliver(seqno-1,prevhash0,blob0)`和`deliver(seqno,prevhash,blob)`,`prevhash = HASH(seqno01 || prevhash0 || blob0)`；
 
-- No skipping.如果Ordering service在一个正确的peer节点p上输出`deliver(seqno, prevhash, blob)`，例如seqno>0,则p已经收到事件`deliver(seqno-1,prevhash0,blob0)`；根据递归定义，p也肯定收到了序列号为1,2,...,seqno-1的所有事件；
+- *No skipping*.如果Ordering service在一个正确的peer节点p上输出`deliver(seqno, prevhash, blob)`，例如seqno>0,则p已经收到事件`deliver(seqno-1,prevhash0,blob0)`；根据递归定义，p也肯定收到了序列号为1,2,...,seqno-1的所有事件；
 
-- No creation.在一个正确的peer节点上任何`deliver(seqno, prevhash, blob)`事件产生前，必须先在一些（可能是不同的）peer节点上产生`broadcast(blob)`事件；
+- *No creation*.在一个正确的peer节点上任何`deliver(seqno, prevhash, blob)`事件产生前，必须先在一些（可能是不同的）peer节点上产生`broadcast(blob)`事件；
 
-- No duplication.（可选，但是最好能保证）对于任何两个广播事件`broadcast(blob)`和`broadcast(blob')`，当两个deliver事件`deliver(seqno0, prevhash0, blob0)`和`deliver(seqno1, prevhash1, blob')`在`blob==blob'`时，`seqno0==seqno1`并且`prevhash0==prevhash1`。
+- *No duplication*.（可选，但是最好能保证）对于任何两个广播事件`broadcast(blob)`和`broadcast(blob')`，当两个deliver事件`deliver(seqno0, prevhash0, blob0)`和`deliver(seqno1, prevhash1, blob')`在`blob==blob'`时，`seqno0==seqno1`并且`prevhash0==prevhash1`。
 
-- Liveness.如果一个正确的客户端发一起一个广播事件`broadcast(blob)`，那么每个正确的peer节点“最终”都会向order节点发出一个deliver事件`deliver(*,*,blob)`，其中`*`表示一个任意值，具体指需要peer根据当前条件决定。
+- *Liveness*.如果一个正确的客户端发一起一个广播事件`broadcast(blob)`，那么每个正确的peer节点“最终”都会向order节点发出一个deliver事件`deliver(*,*,blob)`，其中`*`表示一个任意值，具体指需要peer根据当前条件决定。
