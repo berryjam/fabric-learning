@@ -407,4 +407,26 @@ func (ds *deliverServer) deliverBlocks(srv ab.AtomicBroadcast_DeliverServer, env
 
 #### 1.3.3.3 Ordering service属性
 
+Ordering service（或原子广播channel）的保证规定了广播消息发生了什么以及与deliver消息之间的关系（之间的关系请参考上面所述）。这些保证如下，`事实上这两条属性也是所有分布式系统的基础属性`：
 
+**1.Safety（安全性或一致性保证）**：只要peer连接到channel的时间足够长（它们可以断开连接或崩溃，但将重新启动并重新连接），它们将看到相同的一系列`delivered(seqno, prevhash, blob)`消息。这意味着`deliver()`事件的输出在所有peer节点上按照相同的顺序发生，并且序列号相同的消息包含相同的内容（`blob`和`prevhash`）。注意，这只是一个逻辑顺序，并且在一个peer节点上的`deliver(seqno, prevhash, blob)`不需要`同时`在另外一个peer节点上发生。但是只要发生了，deliver事件`最终在所有的peer都会产生`。换句话说，一条消息给定一个特定的`seqno`，没有两个正确的peer节点收到的这个消息所包含的内容不一样`(blob,prevhash)`。此外，除非某些客户端（peer节点）实际调用`broadcast(blob)`接口，否则不会产生`deliver`事件，并且每次调用`broadcast(blob)`只会产生一次`deliver`事件。
+
+另外，`deliver()`事件会包含之前`deliver()`事件(`prevhash`)中数据的加密散列值。当Ordering service实现原子广播保证时，`prevhash`是序列号为`seqno-1`的`deliver`事件的参数的加密散列值`(prevhash==hash(seqno,prevhash,blob))`。这将在`deliver()`事件之间建立一个哈希链，用于帮助验证Ordering service输出的完整性，如后面的第4节和第5节所述。特别地，对于第一个`deliver()`事件来说，它的`prevhash`有一个默认值。
+
+**2.Liveness（交付保证）**：Ordering service的Liveness保证由Ordering service的实现来保证，确切的保证取决于网络和节点鼓掌模型。
+
+原则上，如果提交的客户端没有失败，那么Ordering service应该保证每个与它连接的正确的peer节点最终deliver到每个提交的事务。
+
+总之，Ordering service确保以下属性，这些属性又是保证整个区块链系统正常运行：
+
+- Agreement.对于任何两个在正确peer节点上的deliver事件`deliver(seqno,prevhash0,blob0)`和`deliver(seqno,prevhash1,blob1)`，如果`seqno`相等，那么`prevhash0==prevhash1`并且`blob0==blob1`。
+
+- Hashchain integrity.对于任何两个在正确节点上的deliver事件`deliver(seqno-1,prevhash0,blob0)`和`deliver(seqno,prevhash,blob)`,`prevhash = HASH(seqno01 || prevhash0 || blob0)`；
+
+- No skipping.如果Ordering service在一个正确的peer节点p上输出`deliver(seqno, prevhash, blob)`，例如seqno>0,则p已经收到事件`deliver(seqno-1,prevhash0,blob0)`；根据递归定义，p也肯定收到了序列号为1,2,...,seqno-1的所有事件；
+
+- No creation.在一个正确的peer节点上任何`deliver(seqno, prevhash, blob)`事件产生前，必须先在一些（可能是不同的）peer节点上产生`broadcast(blob)`事件；
+
+- No duplication.（可选，但是最好能保证）对于任何两个广播事件`broadcast(blob)`和`broadcast(blob')`，当两个deliver事件`deliver(seqno0, prevhash0, blob0)`和`deliver(seqno1, prevhash1, blob')`在`blob==blob'`时，`seqno0==seqno1`并且`prevhash0==prevhash1`。
+
+- Liveness.如果一个正确的客户端发一起一个广播事件`broadcast(blob)`，那么每个正确的peer节点“最终”都会向order节点发出一个deliver事件`deliver(*,*,blob)`，其中`*`表示一个任意值，具体指需要peer根据当前条件决定。
