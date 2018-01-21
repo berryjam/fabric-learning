@@ -11,3 +11,16 @@
 在下文中，我们首先详细介绍`PROPOSE`消息格式，然后讨论提交客户端和背书节点之间可能的交互模式。
 
 ## 2.1.1. `PROPOSE`消息格式
+
+`PROPOSE`消息的格式为`<PROPOSE,tx,[anchor]>`，其中`tx`是必要参数，`anchor`是可选参数。
+
+- `tx=<clientID,chaincodeID,txPayload,timestamp,clientSig>`，其中：
+
+    - clientID是提交客户端的ID
+    
+
+
+    - chaincodeID是指事务所属的链代码的ID
+
+    - txPayload
+  
