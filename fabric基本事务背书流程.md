@@ -18,8 +18,6 @@
 
     - clientID是提交客户端的ID
     
-
-
     - chaincodeID是指事务所属的链代码的ID
 
     - txPayload
