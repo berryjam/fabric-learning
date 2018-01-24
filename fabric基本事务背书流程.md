@@ -16,9 +16,9 @@
 
 - `tx=<clientID,chaincodeID,txPayload,timestamp,clientSig>`，其中：
 
-    - clientID是提交客户端的ID
+    - `clientID`是提交客户端的ID
     
-    - chaincodeID是指事务所属的链代码的ID
+    - `chaincodeID`是指事务所属的链代码的ID
 
-    - txPayload
+    - `txPayload`
   
