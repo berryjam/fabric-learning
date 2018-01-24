@@ -8,4 +8,4 @@
 
 - event.Timer是用于管理时间驱动的事件的接口，比golang timer多了一些特性：就算timer已经触发，但是只要event thread调用stop或者reset，那么timer触发的event就不会分发到event queue。
 
-- 新建obcBatch时，会创建一个batchTimer定时器，根据配置设定batchTimeout等信息。
+- 新建obcBatch时，会创建一个batchTimer定时器，根据配置设定batchTimeout等信息。Timer设置了
