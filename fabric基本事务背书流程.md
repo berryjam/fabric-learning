@@ -20,5 +20,5 @@
     
     - `chaincodeID`是指事务所属的链代码的ID
 
-    - `txPayload`
+    - `txPayload`
   
