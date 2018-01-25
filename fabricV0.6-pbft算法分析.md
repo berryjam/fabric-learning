@@ -10,6 +10,7 @@
 
 - 新建obcBatch时：
 
-    - 创建一个batchTimer定时器，根据配置设定batchTimeout等信息。obcBatch设置了batchTimer，每当出现timeOut后，会发送一个RequestBatch事件；
-    - 创建一个pbftCore，并设置pbft.requestTimeout和pbft.nullRequestTimeout；
+    - 创建一个batchTimer定时器，根据配置设定batchTimeout等信息。obcBatch设置了batchTimer，每当出现timeOut后，会发送一个RequestBatch事件；
+    
+    - 创建一个pbftCore，并设置pbft.requestTimeout和pbft.nullRequestTimeout；
     
