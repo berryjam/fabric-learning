@@ -16,9 +16,9 @@
 
 - `tx=<clientID,chaincodeID,txPayload,timestamp,clientSig>`，其中：
 
-    - `clientID`是提交客户端的ID
+    - `clientID`是提交客户端的ID；
     
-    - `chaincodeID`是指事务所属的链代码的ID
+    - `chaincodeID`是指事务所属的链代码的ID；
 
-    - `txPayload`
+    - `txPayload`是包含提交的事务本身的有效数据载体；
   
