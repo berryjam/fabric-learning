@@ -18,12 +18,10 @@ func (p *Impl) ExecuteTransaction(transaction *pb.Transaction) (response *pb.Res
         }
         return response
 }
-hyperledger/fabric/core/peer/peer.go
+// hyperledger/fabric/core/peer/peer.go
 ```
 
-2.peer节点在启动时，读取配置"peer.validator.enabled"的值，peer根据这个值将自身设置为validator或者非validator。validator与非validator的区别在于：前者能够直接执行事务，而后者不直接执行事务而是通过gRPC的方式调用validator节点来执行事务（相当于转发事务）。
-
-客户端通过调用链代码，向
+2.peer节点在启动时，读取配置"peer.validator.enabled"的值，peer根据这个值将自身设置为validator或者非validator。validator与非validator的区别在于：前者能够直接执行事务，而后者不直接执行事务而是通过gRPC的方式调用validator节点来执行事务（相当于转发事务），详细请参见SendTransactionsToPeer的实现。
 
 - obcBatch能够批量地对消息进行共识，提高pbft的共识效率，因为如果一条消息就进行一次共识，成本会很高。events.Manager整个事件管理器，最上层peer的操作会通过events.Manager.Queue()来输入事件，再由事件驱动pbftCore等结构体去完成整个共识过程。
 
