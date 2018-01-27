@@ -23,7 +23,7 @@ func (p *Impl) ExecuteTransaction(transaction *pb.Transaction) (response *pb.Res
 // hyperledger/fabric/core/peer/peer.go
 ```
 
-1.2 peer节点在启动时，读取配置"peer.validator.enabled"的值，peer根据这个值将自身设置为validator或者非validator。validator与非validator的区别在于：前者能够直接执行事务，而后者不直接执行事务而是通过gRPC的方式调用validator节点来执行事务（相当于转发事务），详细请参见SendTransactionsToPeer的实现，最终请求会定向到sendTransactionsToLocalEngine。重点分析sendTransactionsToLocalEngine方法。
+1.2 peer节点在启动时，读取配置文件core.yaml的文件配置项peer.validator.enabled的值，peer根据这个值将自身设置为validator或者非validator。validator与非validator的区别在于：前者能够直接执行事务，而后者不直接执行事务而是通过gRPC的方式调用validator节点来执行事务（相当于转发事务），详细请参见SendTransactionsToPeer的实现，最终请求会定向到sendTransactionsToLocalEngine。重点分析sendTransactionsToLocalEngine方法。
 
 1.3 sendTransactionsToLocalEngin方法会调用`p.engine.ProcessTransactionMsg`，`p.engine`为结构体EngineImpl，这是Engine接口实例，在启动peer时候创建。Engine这个接口用于管理peer网络的通讯和处理事务。EngineImpl的结构如下：
 
@@ -61,6 +61,7 @@ func (eng *EngineImpl) ProcessTransactionMsg(msg *pb.Message, tx *pb.Transaction
 
 ## 2.收到链代码执行请求的peer节点对链代码执行、部署事务进行共识
 
+fabric V0.6分支实现了两种公式算法NOOPS和PBFT，默认是NOOPS，peer节点在启动根据配置文件core.yaml文件配置项peer.validator.consensus.plugin选择采用哪种共识算法。
 
 - obcBatch能够批量地对消息进行共识，提高pbft的共识效率，因为如果一条消息就进行一次共识，成本会很高。events.Manager整个事件管理器，最上层peer的操作会通过events.Manager.Queue()来输入事件，再由事件驱动pbftCore等结构体去完成整个共识过程。
 
