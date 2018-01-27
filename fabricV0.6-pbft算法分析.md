@@ -14,3 +14,8 @@
     
     - 创建一个pbftCore，并设置pbft.requestTimeout和pbft.nullRequestTimeout；
     
+
+<div align="center">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/consensus-class-diagram.png?raw=true">
+</div>
+
