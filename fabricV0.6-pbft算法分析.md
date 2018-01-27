@@ -5,7 +5,9 @@
 
 整个consensus模块的流程大致为：
 
-1.客户端通过调用fabric的RESTful接口/chaincode**调用链代码**或者**部署链代码**，fabric在处理请求的时候（fabric/core/rest/rest_api.go.ProcessChaincode）再通过JSON RPC向peer节点发起执行事务请求，hyperledger/fabric/core/devops.go的Deplopy、invokeOrQuery方法，会调用peer.Impl（这个结构提供peer服务的实现）的ExecuteTransaction方法，如下面代码所示：
+## 1.客户端向某个peer节点发送执行链代码请求
+
+1.1 客户端通过调用fabric的RESTful接口/chaincode**调用链代码**或者**部署链代码**，fabric在处理请求的时候（fabric/core/rest/rest_api.go.ProcessChaincode）再通过JSON RPC向peer节点发起执行事务请求，hyperledger/fabric/core/devops.go的Deplopy、invokeOrQuery方法，会调用peer.Impl（这个结构提供peer服务的实现）的ExecuteTransaction方法，如下面代码所示：
 
 ```
 //ExecuteTransaction executes transactions decides to do execute in dev or prod mode
@@ -21,9 +23,9 @@ func (p *Impl) ExecuteTransaction(transaction *pb.Transaction) (response *pb.Res
 // hyperledger/fabric/core/peer/peer.go
 ```
 
-2.peer节点在启动时，读取配置"peer.validator.enabled"的值，peer根据这个值将自身设置为validator或者非validator。validator与非validator的区别在于：前者能够直接执行事务，而后者不直接执行事务而是通过gRPC的方式调用validator节点来执行事务（相当于转发事务），详细请参见SendTransactionsToPeer的实现，最终请求会定向到sendTransactionsToLocalEngine。重点分析sendTransactionsToLocalEngine方法。
+1.2 peer节点在启动时，读取配置"peer.validator.enabled"的值，peer根据这个值将自身设置为validator或者非validator。validator与非validator的区别在于：前者能够直接执行事务，而后者不直接执行事务而是通过gRPC的方式调用validator节点来执行事务（相当于转发事务），详细请参见SendTransactionsToPeer的实现，最终请求会定向到sendTransactionsToLocalEngine。重点分析sendTransactionsToLocalEngine方法。
 
-3.sendTransactionsToLocalEngin方法会调用`p.engine.ProcessTransactionMsg`，`p.engine`为结构体EngineImpl，这是Engine接口实例，在启动peer时候创建。Engine这个接口用于管理peer网络的通讯和处理事务。EngineImpl的结构如下：
+1.3 sendTransactionsToLocalEngin方法会调用`p.engine.ProcessTransactionMsg`，`p.engine`为结构体EngineImpl，这是Engine接口实例，在启动peer时候创建。Engine这个接口用于管理peer网络的通讯和处理事务。EngineImpl的结构如下：
 
 ```
 // EngineImpl implements a struct to hold consensus.Consenter, PeerEndpoint and MessageFan
@@ -36,6 +38,29 @@ type EngineImpl struct {
 
 // hyperledger/fabric/consensus/helper/engine.go
 ```
+
+1.4 `ProcessTransactionMsg`的代码如下，可以看见链代码查询事务直接执行不需要进行共识，因为读取某个peer节点的账本不会影响自身以及其他peer节点账本，所以不需要共识来同步。而链代码调用和部署事务会影响到单个peer节点账本和状态，所以会调用共识插件的RecvMsg函数来保证各个peer节点的账本和状态一致。
+
+```
+// ProcessTransactionMsg processes a Message in context of a Transaction
+func (eng *EngineImpl) ProcessTransactionMsg(msg *pb.Message, tx *pb.Transaction) (response *pb.Response) {
+        //TODO: Do we always verify security, or can we supply a flag on the invoke ot this functions so to bypass check for locally generated transactions?
+        if tx.Type == pb.Transaction_CHAINCODE_QUERY {
+           // ... 
+           result, _, err := chaincode.Execute(cxt, chaincode.GetChain(chaincode.DefaultChain), tx) // 直接执行查询事务，不需要共识
+           // ...
+        } else {
+           // ...
+           err := eng.consenter.RecvMsg(msg, eng.peerEndpoint.ID)  // 使用共识插件保证各个peer节点账本和状态保持一致
+           if err != nil {
+                    response = &pb.Response{Status: pb.Response_FAILURE, Msg: []byte(err.Error())}
+           }
+           // ...
+// hyperledger/fabric/consensus/helper/engine.go
+```
+
+## 2.收到链代码执行请求的peer节点对链代码执行、部署事务进行共识
+
 
 - obcBatch能够批量地对消息进行共识，提高pbft的共识效率，因为如果一条消息就进行一次共识，成本会很高。events.Manager整个事件管理器，最上层peer的操作会通过events.Manager.Queue()来输入事件，再由事件驱动pbftCore等结构体去完成整个共识过程。
 
