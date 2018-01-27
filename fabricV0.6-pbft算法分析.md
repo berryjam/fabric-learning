@@ -19,5 +19,7 @@
 <div align="center">
 <img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/consensus-class-diagram.png?raw=true">
 </div>
-<center>**图 1 consensus包的类图**</center>
-<h1 style="text-align:center">居中对齐 </h1>
+
+<p align="center">
+  <b>图 1 consensus包的类图</b><br>
+</p>
