@@ -21,7 +21,21 @@ func (p *Impl) ExecuteTransaction(transaction *pb.Transaction) (response *pb.Res
 // hyperledger/fabric/core/peer/peer.go
 ```
 
-2.peer节点在启动时，读取配置"peer.validator.enabled"的值，peer根据这个值将自身设置为validator或者非validator。validator与非validator的区别在于：前者能够直接执行事务，而后者不直接执行事务而是通过gRPC的方式调用validator节点来执行事务（相当于转发事务），详细请参见SendTransactionsToPeer的实现。
+2.peer节点在启动时，读取配置"peer.validator.enabled"的值，peer根据这个值将自身设置为validator或者非validator。validator与非validator的区别在于：前者能够直接执行事务，而后者不直接执行事务而是通过gRPC的方式调用validator节点来执行事务（相当于转发事务），详细请参见SendTransactionsToPeer的实现，最终请求会定向到sendTransactionsToLocalEngine。重点分析sendTransactionsToLocalEngine方法。
+
+3.sendTransactionsToLocalEngin方法会调用`p.engine.ProcessTransactionMsg`，`p.engine`为结构体EngineImpl，这是Engine接口实例，在启动peer时候创建。Engine这个接口用于管理peer网络的通讯和处理事务。EngineImpl的结构如下：
+
+```
+// EngineImpl implements a struct to hold consensus.Consenter, PeerEndpoint and MessageFan
+type EngineImpl struct {
+        consenter    consensus.Consenter // 每个共识插件都需要实现Consenter接口，包括RecvMsg方法和ExecutionConsumer接口的里函数（可以直接返回）
+        helper       *Helper // 包含一些工具类方法，可以调用外部接口，比如获取网络信息，消息签名、验证，持久化一些对象等
+        peerEndpoint *pb.PeerEndpoint
+        consensusFan *util.MessageFan
+}
+
+// hyperledger/fabric/consensus/helper/engine.go
+```
 
 - obcBatch能够批量地对消息进行共识，提高pbft的共识效率，因为如果一条消息就进行一次共识，成本会很高。events.Manager整个事件管理器，最上层peer的操作会通过events.Manager.Queue()来输入事件，再由事件驱动pbftCore等结构体去完成整个共识过程。
 
