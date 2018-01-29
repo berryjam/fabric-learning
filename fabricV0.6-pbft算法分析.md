@@ -65,9 +65,72 @@ func (eng *EngineImpl) ProcessTransactionMsg(msg *pb.Message, tx *pb.Transaction
 
 - NOOPS：用于开发和测试使用的插件，当一个validator节点收到一个事务消息时，会把消息转为共识消息，并会向所有节点广播共识消息。一般情况下，所有节点都会接收到这条共识消息，并执行消息里的事务。`这是一种比较朴素的共识方式，一旦因为网络或者其他原因，有些节点没收到广播消息，就会存在状态不一致问题，所以不只用于开发和测试。`
 
-- PBFT：PBFT算法实现。简单地说当网络里的错误失效节点数量f与总的节点数量N满足关系N>3f时，PBFT算法也能保证各个节点的状态保持一致。当然还有更进一步的系统约束条件，后面会说明。
+- PBFT：PBFT算法实现。简单地说当网络里的错误失效节点数量f与总的节点数量N满足关系N>3f时，PBFT算法也能保证各个节点的状态保持一致。但是实现PBFT算法的需要满足以下的约束条件，**所以在选择共识算法时要对系统进行全面评估，基于系统自身情况选择，不能盲目选择。**：
+
+    - 系统假设为异步分布式，通过网络传输的消息可能丢失、延迟、重复或者乱序。**作者假设节点的失效必须是独立发生的，也就是说代码、操作系统和管理员密码这些东西在各个节点上是不一样的**。
+   
+    - 使用了加密技术来防止欺骗攻击和重播攻击，以及检测被破坏的消息。**并且假设所有的节点都知道其他节点的公钥以进行签名验证。**
+
+    - 可能存在多个失效、通讯存在延迟的节点,但是延迟节点不会无限期的被延迟，而且恶意攻击者算力有限无法破解加密算法。
+
+### 2.1 pbft算法简介
+
+在分析fabric-pbft的源码前，先对pbft算法流程做一个简单的描述。图1是pbft算法的三段协议过程：
+
+<div align="center">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/3-phase-protocol.jpg?raw=true">
+</div>
+
+<p align="center">
+  <b>图 1 pbft算法三段协议过程</b><br>
+</p>
 
 
+- REQUEST阶段：
+
+    - 客户端向primary节点发送请求；
+
+    - primary节点判断正在处理的消息是否超出限制，如果超出限制就先缓存起来再打包发送；
+    
+    - 生成序列号n；
+    
+    - 广播PRE-PREPARE消息给backup节点；
+
+- PRE-PREPARE阶段：
+
+    - 检查PRE-PREPARE消息签名是否正确，消息的摘要是否正确；
+
+    - 判断当前节点的view是否是*v*；
+    
+    - 检查是否收到过相同*v*和*n*的消息，摘要却不一样；
+    
+    - 判断*n*是否在*h*和*H*之间；
+    
+    - 如果都通过的话就广播PREPARE消息给其他节点，包括primary节点； 
+
+- PREPARE阶段：
+
+    - 检查PRE-PREPARE消息签名是否正确，消息的摘要是否正确；
+
+    - 判断当前节点的view是否是*v*；
+    
+    - 检查是否收到过相同*v*和*n*的消息，摘要却不一样；
+    
+    - 判断*n*是否在*h*和*H*之间；
+    
+    - 如果都通过的话就广播PREPARE消息给其他节点，包括primary节点；
+    
+- COMMIT阶段：
+
+    - 检查PREPARE消息签名是否正确，消息的摘要是否正确；
+
+    - 判断当前节点的view是否是*v*；
+    
+    - 检查是否收到过相同*v*和*n*的消息，摘要却不一样；
+    
+    - 判断*n*是否在*h*和*H*之间；
+    
+    - 如果都通过的话就广播PREPARE消息给其他节点，包括primary节点；
 
 - obcBatch能够批量地对消息进行共识，提高pbft的共识效率，因为如果一条消息就进行一次共识，成本会很高。events.Manager整个事件管理器，最上层peer的操作会通过events.Manager.Queue()来输入事件，再由事件驱动pbftCore等结构体去完成整个共识过程。
 
@@ -79,14 +142,14 @@ func (eng *EngineImpl) ProcessTransactionMsg(msg *pb.Message, tx *pb.Transaction
     
     - 创建一个pbftCore，并设置pbft.requestTimeout和pbft.nullRequestTimeout；
     
-下图1是consensus包的类图，包含了主要结构、接口以及之间的关系。（图片有点小，可以点击放大查看：））
+下图2是consensus包的类图，包含了主要结构、接口以及之间的关系。（图片有点小，可以点击放大查看：））
 
 <div align="center">
 <img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/consensus-class-diagram.png?raw=true">
 </div>
 
 <p align="center">
-  <b>图 1 consensus包的类图</b><br>
+  <b>图 2 consensus包的类图</b><br>
 </p>
 
 
