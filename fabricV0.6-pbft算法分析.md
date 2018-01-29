@@ -89,35 +89,7 @@ func (eng *EngineImpl) ProcessTransactionMsg(msg *pb.Message, tx *pb.Transaction
   <b>图 1 pbft算法三段协议过程</b><br>
 </p>
 
-从primary收到消息开始，每个消息都会有view的编号，每个节点都会检查是否和自己的view是相同的，代表是哪个节点发送出来的消息，源头在哪里，client收到消息也会检查该请求返回的所有消息是否是相同的view。如果过程中发现view不相同，消息就不会被处理。除了检查view之外，每个节点收到消息的时候都会检查对应的序列号n是否匹配，还会检查相同view和n的PRE-PREPARE、PREPARE消息是否匹配，从协议的连续性上提供了一定程度的安全。
-
-每个节点收到其他节点发送的消息，能够验证其签名确认发送来源，但并不能确认发送节点是否伪造了消息，PBFT采用的办法就是数数，看有多少节点发送了相同的消息，在有问题的节点数有限的情况下，就能判断哪些节点发送的消息是真实的。REQUEST和PRE-PREPARE阶段还不涉及到消息的真实性，只是独立的生成或者确认view和序列号n，所以收到消息判断来源后就广播出去了。PREPARE阶段开始会汇总消息，通过数数判断消息的真实性。PREPARE消息是收到PRE-PREPARE消息的节点发送出来的，primary收到REQUEST消息后不会给自己发送PRE-PREPARE消息，也不会发送PRE-PREPARE消息，所以一个节点收到的消息数满足2f+1-1=2f个就能满足没问题的节点数比有问题节点多了（包括自身节点）。COMMIT阶段primary节点也会在收到PREPARE消息后发送COMMIT消息，所以收到的消息数满足2f+1个就能满足没问题的节点数比有问题节点多了（包括自身节点）。
-
-PRE-PREPARE和PREPARE阶段保证了所有正常的节点对请求的处理顺序达成一致，它能够保证如果 PREPARE(m, v, n, i) 是真的话，PREPARE(m’, v, n, j) 就一定是假的，其中j是任意一个正常节点的编号，只要 D(m) != D(m’)。因为如果有3f+1个节点，至少有f+1个正常的节点发送了PRE-PREPARE和PREPARE消息，所以如果PREPARE(m’, v, n, j) 是真的话，这些节点中就至少有一个节点发了不同的PRE-PREPARE或者PREPARE消息，这和它是正常的节点不一致。当然，还有一个假设是安全强度是足够的，能够保证m != m’时，D(m) != D(m’)，D(m) 是消息m的摘要。
-
-确定好了每个请求的处理顺序，怎么能保证按照顺序执行呢？网络消息都是无序到达的，每个节点达成一致的顺序也是不一样的，有可能在某个节点上n比n-1先达成一致。其实每个节点都会把PRE-PREPARE、PREPARE和COMMIT消息缓存起来，它们都会有一个状态来标识现在处理的情况，然后再按顺序处理。而且序列号n在不同view中也是连续的，所以n-1处理完了，处理n就好了。
-
-#### 2.1.2 VIEW-CHANGE协议
-
-上面的3阶段协议例子没有说明primary节点出错时，系统是否能够正常运作。而VIEW-CHANGE协议是为了保证在primary节点出错时，系统仍能能够正常运作。图2是VIEW-CHANGE协议过程：
-
-<div align="center">
-<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/view-change.jpg?raw=true">
-</div>
-
-<p align="center">
-  <b>图 2 VIEW-CHANGE协议过程</b><br>
-</p>
-
-上图是发生VIEW-CHANGE的一种情况，就是节点正常收到PRE-PREPARE消息以后都会启动一个定时器，如果在设置的时间内都没有收到回复，就会触发VIEW-CHANGE，该节点就不会再接收除CHECKPOINT 、VIEW-CHANGE和NEW-VIEW等消息外的其他消息了。NEW-VIEW是由新一轮的primary节点发送的，O是不包含捎带的REQUEST的PRE-PREPARE消息集合，计算方法如下：
-
-primary节点确定V中最新的稳定检查点序列号min-s和PRE-PREPARE消息中最大的序列号max-s
-对min-s和max-s之间每个序列号n都生成一个PRE-PREPARE消息。这可能有两种情况：
-P的VIEW-CHANGE消息中至少存在一个集合，序列号是n
-不存在上面的集合
-第一种情况，会生成新的PRE-PREPARE消息<PRE-PREPARE, v+1, n, d>𝞂p，其中n是V中最大的v序列号，d是对应的PRE-PREPARE消息摘要。第二情况，PRE-PREPARE消息的d是特殊的空消息摘要。
-
-primary节点发送完NEW-VIEW消息并记录到日志中就切换到v+1的view中，开始接收所有的消息了。其他节点也在收到NEW-VIEW消息后需要验证签名是否正确，还要验证O消息的正确性，都没问题就记录到日志中，广播完O中的PRE-PREPARE消息后就切换到v+1的view中，VIEW-CHANGE就算完成了。
+### 2.2 pbft实现
 
 - obcBatch能够批量地对消息进行共识，提高pbft的共识效率，因为如果一条消息就进行一次共识，成本会很高。events.Manager整个事件管理器，最上层peer的操作会通过events.Manager.Queue()来输入事件，再由事件驱动pbftCore等结构体去完成整个共识过程。
 
