@@ -98,39 +98,39 @@ func (eng *EngineImpl) ProcessTransactionMsg(msg *pb.Message, tx *pb.Transaction
 
 - PRE-PREPARE阶段：
 
-    - 检查PRE-PREPARE消息签名是否正确，消息的摘要是否正确；
+    - 检查PRE-PREPARE消息签名是否正确，消息的摘要是否正确；
 
-    - 判断当前节点的view是否是*v*；
+    - 判断当前节点的view是否是*v*；
     
-    - 检查是否收到过相同*v*和*n*的消息，摘要却不一样；
+    - 检查是否收到过相同*v*和*n*的消息，摘要却不一样；
     
-    - 判断*n*是否在*h*和*H*之间；
+    - 判断*n*是否在*h*和*H*之间；
     
-    - 如果都通过的话就广播PREPARE消息给其他节点，包括primary节点； 
+    - 如果都通过的话就广播PREPARE消息给其他节点，包括primary节点； 
 
 - PREPARE阶段：
 
-    - 检查PRE-PREPARE消息签名是否正确，消息的摘要是否正确；
+    - 检查PRE-PREPARE消息签名是否正确，消息的摘要是否正确；
 
-    - 判断当前节点的view是否是*v*；
+    - 判断当前节点的view是否是*v*；
     
-    - 检查是否收到过相同*v*和*n*的消息，摘要却不一样；
+    - 检查是否收到过相同*v*和*n*的消息，摘要却不一样；
     
-    - 判断*n*是否在*h*和*H*之间；
+    - 判断*n*是否在*h*和*H*之间；
     
-    - 如果都通过的话就广播PREPARE消息给其他节点，包括primary节点；
+    - 如果都通过的话就广播PREPARE消息给其他节点，包括primary节点；
     
 - COMMIT阶段：
 
-    - 检查PREPARE消息签名是否正确，消息的摘要是否正确；
+    - 检查PREPARE消息签名是否正确，消息的摘要是否正确；
 
-    - 判断当前节点的view是否是*v*；
+    - 判断当前节点的view是否是*v*；
     
-    - 检查是否收到过相同*v*和*n*的消息，摘要却不一样；
+    - 检查是否收到过相同*v*和*n*的消息，摘要却不一样；
     
-    - 判断*n*是否在*h*和*H*之间；
+    - 判断*n*是否在*h*和*H*之间；
     
-    - 如果都通过的话就广播PREPARE消息给其他节点，包括primary节点；
+    - 如果都通过的话就广播PREPARE消息给其他节点，包括primary节点；
 
 - obcBatch能够批量地对消息进行共识，提高pbft的共识效率，因为如果一条消息就进行一次共识，成本会很高。events.Manager整个事件管理器，最上层peer的操作会通过events.Manager.Queue()来输入事件，再由事件驱动pbftCore等结构体去完成整个共识过程。
 
