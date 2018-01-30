@@ -159,7 +159,7 @@ PBFT协议里提了几种优化措施：
 
 ### 2.2 pbft实现
 
-回到1.4节，当peer节点执行的是链代码调用或者部署事务时，需要进行共识，`err := eng.consenter.RecvMsg(msg, eng.peerEndpoint.ID)`
+回到1.4节，当peer节点执行的是链代码调用或者部署事务时，需要进行共识，`err := eng.consenter.RecvMsg(msg, eng.peerEndpoint.ID)`。
 
 - obcBatch能够批量地对消息进行共识，提高pbft的共识效率，因为如果一条消息就进行一次共识，成本会很高。events.Manager整个事件管理器，最上层peer的操作会通过events.Manager.Queue()来输入事件，再由事件驱动pbftCore等结构体去完成整个共识过程。
 
@@ -171,7 +171,7 @@ PBFT协议里提了几种优化措施：
     
     - 创建一个pbftCore，并设置pbft.requestTimeout和pbft.nullRequestTimeout；
     
-下图2是consensus包的类图，包含了主要结构、接口以及之间的关系。（图片有点小，可以点击放大查看：））
+下图2是consensus包的类图，包含了主要结构、接口以及之间的关系。（**图片有点小，可以点击放大查看：）**）
 
 <div align="center">
 <img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/consensus-class-diagram.png?raw=true">
