@@ -180,5 +180,3 @@ PBFT协议里提了几种优化措施：
 <p align="center">
   <b>图 2 consensus包的类图</b><br>
 </p>
- 
- 
