@@ -92,3 +92,18 @@ func newTimerImpl(manager Manager) Timer {
         return et
 }
 ```
+
+#### 2.2.3 pbft共识代码
+
+fabric V0.6分支的pbft公式算法代码都在位于文件夹consensus，consensus文件夹包含了controller、executor、helper、noops、pbft、util几个模块。
+
+其中consensus.go包含了算法插件需要实现的接口以及fabric外部提供给算法调用的接口，如执行管理账本状态的InvalidateState()、ValidateState()接口。
+
+peer节点启动的时候根据配置文件core.yaml文件配置项peer.validator.consensus.plugin选择采用哪种共识算法。目前Fabric实现了两种共识算法NOOPS和PBFT，默认是NOOPS：
+
+- NOOPS：是一个供开发和测试使用的插件，会处理所有收到的消息。
+
+- PBFT：PBFT算法实现。
+
+
+
