@@ -77,7 +77,7 @@ type Timer interface {
 }
 ```
 
-SoftReset(time.Duration,Event)和Rest(time.Duration,Event)方法都会重新启动一个定时器，当启动时间超过duration就会处理event事件。这两个定时方法的区别是前者会先判断是否已经启动过定时器，如果是的话就忽略，否则才会启动；而后者会强制重置定时器。在Event模型已经描述过事件管理器处理event事件的流程，而Timer对象在实例化的过程中会设置Manager，从而达到定时处理Event的目的。
+SoftReset(time.Duration,Event)和Reset(time.Duration,Event)方法都会重新启动一个定时器，当启动时间超过duration就会处理event事件。这两个定时方法的区别是前者会先判断是否已经启动过定时器，如果是的话就忽略，否则才会启动；而后者会强制重置定时器。在Event模型已经描述过事件管理器处理event事件的流程，而Timer对象在实例化的过程中会设置Manager，从而达到定时处理Event的目的。
 
 ```
 // newTimer creates a new instance of timerImpl
