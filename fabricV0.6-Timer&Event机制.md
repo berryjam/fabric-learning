@@ -4,9 +4,91 @@ pbft算法的3段协议、VIEW-CHANGE协议、垃圾回收等等都可以看作�
 
 #### 2.2.1 Event模型
 
-```
+下面是事件管理器，Event的主要接口：
 
 ```
+type Manager interface {
+        Inject(Event)         // A temporary interface to allow the event manager thread to skip the queue
+        Queue() chan<- Event  // Get a write-only reference to the queue, to submit events
+        SetReceiver(Receiver) // Set the target to route events to
+        Start()               // Starts the Manager thread TODO, these thread management things should probably go away
+        Halt()                // Stops the Manager thread
+}
+```
+
+事件管理器用于来管理事件，一般需要管理多个事件并且按事件接收的先后顺序来处理。因此需要有一个队列来存储事件，Queue()接口返回一个类型为Event的channel，用于存储事件。之所以使用channel，是因为Start()方法会启动一个goroutine循环处理接收到的事件，通过channel能够保证只有接收到事件才会处理，不用每时每刻循环检查队列去执行事件，浪费CPU性能。除了接收事件，还要能够处理事件。因此SetRecevier(Recevier)需要设置事件管理器的实际处理者，Recevier接口需要实现ProcessEvent(Event) Event方法。而obcBatch实现了这个方法，比如在处理一个committedEvent后会返回一个execDoneEvent，prepare消息又通过Queue()放到channel，在下一次的事件处理就会执行execDoneEvent，都是事件驱动的，符合pbft的算法模型。Start()方法会启动一个循环处理事件的goroutine：
+
+```
+// Start creates the go routine necessary to deliver events
+func (em *managerImpl) Start() {
+        go em.eventLoop()
+}
+
+// eventLoop is where the event thread loops, delivering events
+func (em *managerImpl) eventLoop() {
+        for {
+                select {
+                case next := <-em.events:
+                        em.Inject(next)
+                case <-em.exit:
+                        logger.Debug("eventLoop told to exit")
+                        return
+                }
+        }
+}
+```
+
+eventLoop()方法会不断从事件队列channel取出事件，再通过Inject（Event）方法调用receiver来处理取出的事件。
+
+```
+// SendEvent performs the event loop on a receiver to completion
+func SendEvent(receiver Receiver, event Event) {
+        next := event
+        for {
+                // If an event returns something non-nil, then process it as a new event
+                next = receiver.ProcessEvent(next)
+                if next == nil {
+                        break
+                }
+        }
+}
+
+// Inject can only safely be called by the managerImpl thread itself, it skips the queue
+func (em *managerImpl) Inject(event Event) {
+        if em.receiver != nil {
+                SendEvent(em.receiver, event)
+        }
+}
+```
+
+Halt()方法用于停止循环处理事件。
+
 
 #### 2.2.2 Timer定时器
 
+之前提到过pbft里面会用到Timer定时器，比如backup只有在等待执行request超时的时候才会广播VIEW-CHANGE消息。下面是Timer接口：
+
+```
+type Timer interface {
+        SoftReset(duration time.Duration, event Event) // start a new countdown, only if one is not already started
+        Reset(duration time.Duration, event Event)     // start a new countdown, clear any pending events
+        Stop()                                         // stop the countdown, clear any pending events
+        Halt()                                         // Stops the Timer thread
+}
+```
+
+SoftReset(time.Duration,Event)和Rest(time.Duration,Event)方法都会重新启动一个定时器，当启动时间超过duration就会处理event事件。这两个定时方法的区别是前者会先判断是否已经启动过定时器，如果是的话就忽略，否则才会启动；而后者会强制重置定时器。在Event模型已经描述过事件管理器处理event事件的流程，而Timer对象在实例化的过程中会设置Manager，从而达到定时处理Event的目的。
+
+```
+// newTimer creates a new instance of timerImpl
+func newTimerImpl(manager Manager) Timer {
+        et := &timerImpl{
+                startChan: make(chan *timerStart),
+                stopChan:  make(chan struct{}),
+                threaded:  threaded{make(chan struct{})},
+                manager:   manager, // 设置事件管理器
+        }
+        go et.loop() // 循环处理事件
+        return et
+}
+```
