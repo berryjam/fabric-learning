@@ -97,13 +97,51 @@ func newTimerImpl(manager Manager) Timer {
 
 fabric V0.6分支的pbft公式算法代码都在位于文件夹consensus，consensus文件夹包含了controller、executor、helper、noops、pbft、util几个模块。
 
-其中consensus.go包含了算法插件需要实现的接口以及fabric外部提供给算法调用的接口，如执行管理账本状态的InvalidateState()、ValidateState()接口。
+其中consensus.go包含了算法插件需要实现的RecvMsg()接口以及fabric外部提供给算法调用的接口，如执行管理账本状态的InvalidateState()、ValidateState()接口。
 
-peer节点启动的时候根据配置文件core.yaml文件配置项peer.validator.consensus.plugin选择采用哪种共识算法。目前Fabric实现了两种共识算法NOOPS和PBFT，默认是NOOPS：
+回顾1.4节，当peer节点执行调用链代码或者部署链代码的事务的时候，需要使用共识插件RecvMsg接口`err := eng.consenter.RecvMsg(msg, eng.peerEndpoint.ID)`对各个peer节点进行共识。接下来看pbft的RecvMsg的实现，如下：
 
-- NOOPS：是一个供开发和测试使用的插件，会处理所有收到的消息。
+```
+// RecvMsg is called by the stack when a new message is received
+func (eer *externalEventReceiver) RecvMsg(ocMsg *pb.Message, senderHandle *pb.PeerID) error {
+        eer.manager.Queue() <- batchMessageEvent{
+                msg:    ocMsg,
+                sender: senderHandle,
+        }
+        return nil
+}
+```
 
-- PBFT：PBFT算法实现。
+如第2.2.1节Event模型所述，共识插件就会在循环等待接收Event事件，调用RecvMsg会向事件管理器EventManager传入一个batchMesageEvent，这个事件会捎带了从peer节点传进来的事务消息ocMsg，再通过receiver来处理接收到的Event事件。而pbft算法插件的recevier是obcBatch，能够批量处理共识消息。下面接着分析obcBatch是如何处理batchMessageEvent的：
 
+```
+// allow the primary to send a batch when the timer expires
+func (op *obcBatch) ProcessEvent(event events.Event) events.Event {
+        logger.Debugf("Replica %d batch main thread looping", op.pbft.id)
+        switch et := event.(type) {  // 根据消息的反射类型来判断消息类型
+        case batchMessageEvent:
+                ocMsg := et
+                return op.processMessage(ocMsg.msg, ocMsg.sender)  // ocMsg的消息类型仍为链代码事务类型
+        case executedEvent:
+                op.stack.Commit(nil, et.tag.([]byte))
+        case committedEvent:
+                logger.Debugf("Replica %d received committedEvent", op.pbft.id)
+                return execDoneEvent{}
+        // ...       
+}
+```
+当接收到的是batchMessageEvent会调用processMessage来处理，并返回另外一种Event。接下来分析processMessage：
 
+```
+func (op *obcBatch) processMessage(ocMsg *pb.Message, senderHandle *pb.PeerID) events.Event {
+        if ocMsg.Type == pb.Message_CHAIN_TRANSACTION {
+                req := op.txToReq(ocMsg.Payload) // 这是pbft
+                return op.submitToLeader(req)
+        }
+        
+        // ....
+}
+```
+
+##### **2.2.3.1 插件接口**
 
