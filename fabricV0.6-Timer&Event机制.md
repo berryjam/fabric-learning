@@ -135,13 +135,34 @@ func (op *obcBatch) ProcessEvent(event events.Event) events.Event {
 ```
 func (op *obcBatch) processMessage(ocMsg *pb.Message, senderHandle *pb.PeerID) events.Event {
         if ocMsg.Type == pb.Message_CHAIN_TRANSACTION {
-                req := op.txToReq(ocMsg.Payload) // 这是pbft
-                return op.submitToLeader(req)
-        }
+                req := op.txToReq(ocMsg.Payload) // 这是pbft的3段协议的Request阶段，把链代码事务转为发向primary节点的请求
+                return op.submitToLeader(req)   // 向primary节点发送request
+        }
         
         // ....
 }
 ```
 
-##### **2.2.3.1 插件接口**
+继续分析submitToLeader（Request）方法，当前向primary节点会进入到pre-prepare阶段，停止nullRequestTimer定时器并向各个backup节点广播pre-prepare消息。
 
+```
+func (instance *pbftCore) recvRequestBatch(reqBatch *RequestBatch) error {
+        digest := hash(reqBatch)
+        logger.Debugf("Replica %d received request batch %s", instance.id, digest)
+
+        instance.reqBatchStore[digest] = reqBatch
+        instance.outstandingReqBatches[digest] = reqBatch
+        instance.persistRequestBatch(digest)
+        if instance.activeView {
+                instance.softStartTimer(instance.requestTimeout, fmt.Sprintf("new request batch %s", digest))
+        }
+        if instance.primary(instance.view) == instance.id && instance.activeView {
+                instance.nullRequestTimer.Stop() // nullRequestTimer定时器作用是让backup节点知道primary节点是否正常运作，正常情况下只要收到Request，就会向backup节点发送一个空的pre-prepare消息，告知其他backup节点自己仍然正常运行
+                instance.sendPrePrepare(reqBatch, digest)
+        } else {
+                logger.Debugf("Replica %d is backup, not sending pre-prepare for request batch %s", instance.id, digest)
+        }
+        return nil
+}
+```
+了解到了Event模型与Timer机制之后，剩下的pbft的代码也就不难理解了。
