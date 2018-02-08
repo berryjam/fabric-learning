@@ -43,7 +43,7 @@
     
       - `metadata` 表示与链代码和应用程序相关的属性；
     
-      - `policies` 包含与所有peer节点可访问的链代码有关的策略，如背书策略。请注意，背书策略在`deploy`事务不会与`txPayload`一起提供，但`deploy`的`txPayload`包含背书策略ID以及参数（请参阅第3节）。
+      - `policies` 包含与所有peer节点可访问的链代码有关的策略，如背书策略。请注意，背书策略在`deploy`事务不会与`txPayload`一起提供，但`deploy`的`txPayload`包含背书策略ID以及参数（请参阅第3节）。
       
 - `anchor`包含*读版本依赖*，或者更具体地说，key-version对（即，`anchor`是`KxN`的一个子集），它将`PROPOSE`请求绑定或"anchors"到KVS指定版本的key。（请参阅1.2节）。如果客户端指定了`anchor`参数，则一个背书者仅在*读*取它本地KVS匹配`anchor`中相应key的版本号时，才会对一个事务进行背书（更多细节请参阅2.2节）。
     
