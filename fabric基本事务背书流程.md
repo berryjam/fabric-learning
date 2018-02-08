@@ -25,9 +25,8 @@
     - `timestamp`是客户端维护的单调递增（对于每个新的事务）整数；
     
     - `clientSig`是tx其他字段上客户端的签名，即clientSig=Signature(clientID,chaincodeID,txPayload,timestamp)；    
- `txPayload`的细节在调用事务和部署事务（如系统结构所述，部署事务其实是对系统链代码事务的调用）之间将有所不同。对于**调用事务**，`txPayload`由两个字段组成：
- 
- 
 
- `txPayload`的细节在调用事务和部署事务（，）
- `txPayload`的细节在调用事务和部署事务（，）
+`txPayload`的细节在调用事务和部署事务（如系统结构所述，部署事务其实是对系统链代码事务的调用）之间将有所不同。对于**调用事务**，`txPayload`由两个字段组成：
+ 
+    - `txPayload = <operation, metadata>`，其中
+
