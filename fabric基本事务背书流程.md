@@ -40,9 +40,9 @@
     - `txPayload = <source, metadata, policies>`，其中
     
       - `source` 表示链代码的源码；
-      
-      - `metadata` 表示与链代码和应用程序相关的属性；
-      
-      - `policies` 包含与所有peer节点可访问的链代码有关的策略，如背书策略。请注意，      
+    
+      - `metadata` 表示与链代码和应用程序相关的属性；
+    
+      - `policies` 包含与所有peer节点可访问的链代码有关的策略，如背书策略。请注意，      
     
     
