@@ -35,9 +35,14 @@
       - `metadata` 表示与调用相关的属性；
         
 
-对于**部署事务**来说，`txPayload`由三个字段组成：
-
-- `txPayload = <operation, metadata>`，其中
+    对于**部署事务**来说，`txPayload`由三个字段组成：
     
     - `txPayload = <source, metadata, policies>`，其中
+    
+      - `source` 表示链代码的源码；
+      
+      - `metadata` 表示与链代码和应用程序相关的属性；
+      
+      - `policies` 包含与所有peer节点可访问的链代码有关的策略，如背书策略。请注意，      
+    
     
