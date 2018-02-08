@@ -39,7 +39,7 @@
     
     - `txPayload = <source, metadata, policies>`，其中
     
-      - `source` 表示链代码的源码；
+      - `source` 表示链代码的源码；
       
       - `metadata` 表示与链代码和应用程序相关的属性；
       
