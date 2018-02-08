@@ -55,7 +55,10 @@
 
 ## 2.2. 背书peer节点模拟事务并产生背书签名
 
-在收到来自客户端的`<PROPOSE,tx,[anchor]>`时，背书peer节点`epID`首先验证客户端的签名`clientSig`
+在收到来自客户端的`<PROPOSE,tx,[anchor]>`时，背书peer节点`epID`首先验证客户端的签名`clientSig`，然后模拟执行一个事务。如果客户端指定了`anchor`，则只有在其本地KVS中的对应键的读取版本号（即，下面定义的`readset`）匹配`anchor`指定的版本号时，背书peer节点才会模拟执行事务。
+    
+模拟事务涉及通过背书peer节点调用事务引用的链代码(chaincodeID)以及复制背书peer节点在本地持有的状态副，以此来临时执行事务(txPayload)。
 
-    
-    
+作为执行的结果，
+
+      
