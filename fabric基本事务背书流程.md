@@ -57,8 +57,15 @@
 
 在收到来自客户端的`<PROPOSE,tx,[anchor]>`时，背书peer节点`epID`首先验证客户端的签名`clientSig`，然后模拟执行一个事务。如果客户端指定了`anchor`，则只有在其本地KVS中的对应键的读取版本号（即，下面定义的`readset`）匹配`anchor`指定的版本号时，背书peer节点才会模拟执行事务。
     
-模拟事务涉及通过背书peer节点调用事务引用的链代码(chaincodeID)以及复制背书peer节点在本地持有的状态副，以此来临时执行事务(txPayload)。
+    
+模拟事务涉及通过背书peer节点调用事务引用的链代码(`chaincodeID`)以及复制背书peer节点在本地持有的状态副，以此来临时执行事务(`txPayload`)。
 
-作为执行的结果，
+作为执行的结果，背书peer节点计算出*读取版本依赖性*(`readset`)和*状态更新*(`writeset`)，也称为DB语言中的*MVCC+postimage*。*MVCC*是多版本并发控制[Multiversion Concurrency control](https://en.wikipedia.org/wiki/Multiversion_concurrency_control)的缩写名词。*MVCC*一般用于数据库管理系统，为了解决存在多并发读写数据时可能出现数据不一致性问题。因为区块链系统中存在多个客户端请求执行事务，所以也会存在账本读写不一致问题。
 
-      
+回想一下，状态由key/value(k/v)对组成。所有k/v对都是版本化的，即每一个k/v对都包含了有序的版本化信息，每当某个key对应的value更新时，该版本信息就会增加。解释事务的peer节点会记录被链代码访问的所有k/v对，用于读取或写入，但peer节点尚未更新其状态。进一步来说：
+
+- 给定一个在背书peer节点执行事务前，它的状态为`s`，对于事务读取的每个`k`，`(k,s(k).version)`pair被添加到到`readset`中。
+
+- 另外，对由事务修改为新值`v'`的每个`k`，`(k,v')`pair被添加到`writeset`。或者，`v'`可能是新值与先前值(`s(k).value`)的增量。（使用增量可以减少`writeset`的大小）
+
+如果
