@@ -68,4 +68,16 @@
 
 - 另外，对由事务修改为新值`v'`的每个`k`，`(k,v')`pair被添加到`writeset`。或者，`v'`可能是新值与先前值(`s(k).value`)的增量。（使用增量可以减少`writeset`的大小）
 
-如果
+如果客户端在`PROPOSE`消息中指定了`anchor`，则客户端指定的`anchor`必须等于模拟执行事务时由背书peer节点生成的`readset`。
+
+然后，peer节点向内部转发`tran-proposal`（也可能是`tx`）到其事务背书的（peer）逻辑部分，称为**背书逻辑**。默认情况下，peer节点的背书逻辑会接受`tran-proposal`并简单地对`tran-proposal`进行签名。然而，背书逻辑可以解释任意的功能，例如，以`tran-proposal`和`tx`作为输入来与遗留系统交互，以达成是否认可交易的决定。
+
+如果背书逻辑决定认可一个事务，它发送`<TRANSACTION-ENDORSED, tid, tran-proposal,epSig>`消息到提交客户端(`tx.clientID`)，其中：
+
+- `tran-proposal := (epID,tid,chaincodeID,txContentBlob,readset,writeset)`，其中`txContentBlob`是(链代码/事务)特定的信息。目的是将`txContentBlob`用作`tx`的一些表示（例如`txContentBlob=tx.txPayload`）。
+
+- `epSig`是背书peer节点对`tran-proposal`的签名。
+
+否则，如果背书逻辑拒绝认可事务
+
+
