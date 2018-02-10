@@ -80,6 +80,10 @@
 
 否则，如果背书逻辑拒绝认可事务，则背书peer节点*可能*向客户端发送消息`(TRANSCATION-INVALID, tid, REJECTED)`。
 
-请注意，背书peer节点在这一步不会改变其状态，在背书背景下
+请注意，背书peer节点在这一步不会改变其状态，在背书背景下由事务模拟产生的更新不会影响peer节点的状态。
+
+## 2.3. 提交的客户端收集事务背书并通过ordering service进行广播
+
+提交的客户端一直等待，直到它收到`(TRANSACTION-ENDORSED, tid, *, *)`
 
 
