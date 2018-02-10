@@ -78,6 +78,8 @@
 
 - `epSig`是背书peer节点对`tran-proposal`的签名。
 
-否则，如果背书逻辑拒绝认可事务
+否则，如果背书逻辑拒绝认可事务，则背书peer节点*可能*向客户端发送消息`(TRANSCATION-INVALID, tid, REJECTED)`。
+
+请注意，背书peer节点在这一步不会改变其状态，在背书背景下
 
 
