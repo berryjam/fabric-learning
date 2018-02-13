@@ -90,4 +90,8 @@
 
 如果提交客户端没有设法收集事务提案的背书，它会放弃此事务并选择稍后重试。
 
-对于有效背书的事务，我们现在开始使用ordering service。提交客户端使用`broadcast(blob)`调用ordering service，其中`blob=endor`
+对于有效背书的事务，我们现在开始使用ordering service。提交客户端使用`broadcast(blob)`调用ordering service，其中`blob=endorsement`。如果客户端没有直接调用ordering service的能力，可以通过自己选择一些peer节点作为代理它的广播。该客户端必须信任peer节点不会从`endorsement`中删除任何消息，否则这个事务就会被视为无效。但是，请注意，一个代理peer节点可能不会编造有效的`endorsement`。
+
+## 2.4. ordering service向peer节点
+
+对
