@@ -99,3 +99,11 @@
 - 它根据链代码(`blob.tran-proposal.chaincodeID`)的背书策略检查`blob.endorsement`是否有效；
 
 - 在典型情况下，它还验证依赖性(`blob.endorsement.tran-proposal.readset`)同时未被违反。在更复杂的情况下，背书的`tran-proposal`字段可能有所不同，在这种情况下，背书策略（第3部分）规定了状态如何更新。
+
+根据状态更新选择的一致性属性和"隔离保证"，可以以不同的方式验证依赖关系。除非链代码背书策略制定了不同的认证，否则**可串行化**是默认的隔离保证。可以通过要求与`readset`中的*每个*key相关联的版本等于该key在状态中的版本以及拒绝不满足该要求的事务来提供可串行属性。
+
+- 如果所有这些检查都通过，事务被视为*valid*或*committed*。在这种情况下，peer节点在`PeerLedger`的位掩码将事务标记为1，将`blob.endorsement.tran-proposal.writeset`应用于区块链状态(如果`tran-proposals`是相同的，否则背书策略逻辑定义了处理`blob.endorsement`的函数)。
+
+- 如果`blob.endorsement`的背书策略验证失败，则该事务无效，并且该peer在`PeerLedger`的位掩码将事务标记为0。重要的是要注意无效事务不会改变区块链状态。
+
+请注意，在处理具有给定序列号的deliver事件(区块)后，这足以让所有（正确）的peer节点具有相同的状态。也就是说，通过ordering service能够保证所有正确的peer节点都会收到相同的`deliver(seqno, prevhash, blob)`事件序列。由于评估背书策略和对`readset`中版本依赖性的评估是确定性的，所有正确的peer节点都会得到同样的结论。因此，所有peer节点都会以相同的方式
