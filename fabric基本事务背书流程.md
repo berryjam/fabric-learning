@@ -92,6 +92,10 @@
 
 对于有效背书的事务，我们现在开始使用ordering service。提交客户端使用`broadcast(blob)`调用ordering service，其中`blob=endorsement`。如果客户端没有直接调用ordering service的能力，可以通过自己选择一些peer节点作为代理它的广播。该客户端必须信任peer节点不会从`endorsement`中删除任何消息，否则这个事务就会被视为无效。但是，请注意，一个代理peer节点可能不会编造有效的`endorsement`。
 
-## 2.4. ordering service向peer节点
+## 2.4. ordering service向peer节点交付事务
 
-对
+当发生事件`deliver(seqno, prevhash, blob)`并且peer节点已将所有状态更新应用于序列号低于`seqno`的blob时，peer节点执行以下操作：
+
+- 它根据链代码(`blob.tran-proposal.chaincodeID`)的背书策略检查`blob.endorsement`是否有效；
+
+- 在典型情况下，它还验证依赖性(`blob.endorsement.tran-proposal.readset`)同时未被违反。在更复杂的情况下，背书的`tran-proposal`字段可能有所不同，在这种情况下，背书策略（第3部分）规定了状态如何更新。
