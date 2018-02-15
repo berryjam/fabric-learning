@@ -112,4 +112,4 @@
 <img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/flow-of-transaction-endorsement.png?raw=true">    
 </div>
 
-                  *图 1. 一般情况下的事务背书流程图*
+                                              图1. 一般情况下的事务背书流程图
