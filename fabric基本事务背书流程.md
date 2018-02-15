@@ -106,4 +106,10 @@
 
 - 如果`blob.endorsement`的背书策略验证失败，则该事务无效，并且该peer在`PeerLedger`的位掩码将事务标记为0。重要的是要注意无效事务不会改变区块链状态。
 
-请注意，在处理具有给定序列号的deliver事件(区块)后，这足以让所有（正确）的peer节点具有相同的状态。也就是说，通过ordering service能够保证所有正确的peer节点都会收到相同的`deliver(seqno, prevhash, blob)`事件序列。由于评估背书策略和对`readset`中版本依赖性的评估是确定性的，所有正确的peer节点都会得到同样的结论。因此，所有peer节点都会以相同的方式
+请注意，在处理具有给定序列号的deliver事件(区块)后，这足以让所有（正确）的peer节点具有相同的状态。也就是说，通过ordering service能够保证所有正确的peer节点都会收到相同的`deliver(seqno, prevhash, blob)`事件序列。由于评估背书策略和对`readset`中版本依赖性的评估是确定性的，所有正确的peer节点都会得到同样的结论。因此，所有peer节点都会以相同的方式提交和应用相同的事务序列并更新他们的状态。
+
+<div align="center">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/flow-of-transaction-endorsement.png?raw=true">    
+</div>
+
+                  *图 1. 一般情况下的事务背书流程图*
