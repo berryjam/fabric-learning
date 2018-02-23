@@ -71,5 +71,15 @@ MockQueryIteratorInterface
 
 ## 2.chaincode api分析
 
+### 2.1 Chaincode 
+
+
+
+### 2.2 ChaincodeStubInterface 
+
+这个接口能够被**可部署**的chaincode应用来读写它们区块账本，这里的可部署是指用户编写的链代码以及部分系统链代码，因为有些系统链代码是不能够部署的，这些不可部署的链代码就不能使用读写账本。
+
+
+
 
 
