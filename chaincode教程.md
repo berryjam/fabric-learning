@@ -1,3 +1,19 @@
+# Chaincode教程
+
+## 1. 概要
+
+### 1.1 什么是Chaincode？
+
+Chaincode是一个程序，用Go,node.js,java等编程语言编写，并实现了特定的接口（后面会详细介绍，分别为`Init`和`Invoke`）。Chaincode在一个安全的Docker容器中运行，该容器与背书peer进程隔离。Chaincode通过应用程序提交的事务来初始化和管理账本状态。
+
+Chaincode通常处理区块链网络成员商定的业务逻辑，因此可以将其视为“智能合约”。由chaincode创建的状态仅限于该chaincode，不能由另一个chaincode直接访问。然而，在同一个区块链网络中，给定适当的权限，chaincode可以调用另一个chaincode来访问其状态。
+
+### 1.2 两种角色
+
+
+
+---
+
 Chaincode
 
 + Init(stub ChaincodeStubInterface) pb.Response
