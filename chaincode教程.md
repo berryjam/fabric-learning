@@ -10,6 +10,9 @@ Chaincode通常处理区块链网络成员商定的业务逻辑，因此可以�
 
 ### 1.2 两种角色
 
+我们可以从两种不同的角色来认识chaincode。一个是从应用程序开发人员的角度出发，应用开发者会开发一个名为[Chaincode for Developers]()的区块链应用程序／解决方案；另一个是面向区块链网络运维人员，[Chaincode for Operators]()，区块链网络运维人员负责管理区块链网络，并利用Hyperledger Fabric API来安装、实例化和升级chaincode，但很可能不会涉及chaincode应用程序的开发。
+
+下面我们将
 
 
 ---
