@@ -12,73 +12,24 @@ Chaincode通常处理区块链网络成员商定的业务逻辑，因此可以�
 
 我们可以从两种不同的角色来认识chaincode。一个是从应用程序开发人员的角度出发，应用开发者会开发一个名为[Chaincode for Developers]()的区块链应用程序／解决方案；另一个是面向区块链网络运维人员，[Chaincode for Operators]()，区块链网络运维人员负责管理区块链网络，并利用Hyperledger Fabric API来安装、实例化和升级chaincode，但很可能不会涉及chaincode应用程序的开发。
 
-下面我们将
+下面我们将分别从chaincode开发者和运维人员两方面对chaincode做一个较为详细的介绍，最后通过结合源码分析，加深对chaincode的理解。最后希望能帮助chaincode开发者能快速上手chaincode的开发，还有帮助chaincode运维人员能够保证chaincode能正常的运行。
+
+## 2. chaincode开发者教程
 
 
----
 
-Chaincode
-
-+ Init(stub ChaincodeStubInterface) pb.Response
-+ Invoke(stub ChaincodeStubInterface) pb.Response
-
----
-
-ChaincodeStubInterface
-
-+ GetArgs() [][]byte
-+ GetStringArgs() []string
-+ GetFunctionAndParameters() (string, []string)
-+ GetArgsSlice() ([]byte, error)
-+ GetTxID() string
-+ GetChannelID() string
-+ InvokeChaincode(chaincodeName string, args [][]byte, channel string) pb.Response
-+ GetState(key string) ([]byte, error)
-+ PutState(key string, value []byte) error
-+ DelState(key string) error
-+ GetStateByRange(startKey, endKey string) (StateQueryIteratorInterface, error)
-+ GetStateByPartialCompositeKey(objectType string, keys []string) (StateQueryIteratorInterface, error)
-+ CreateCompositeKey(objectType string, attributes []string) (string, error)
-+ SplitCompositeKey(compositeKey string) (string. []string, error)
-+ GetQueryResult(query string) (StateQueryIteratorInterface, error)
-+ GetHistoryForKey(key string) (HistoryQueryIteratorInterface, error)
-+ GetCreator() ([]byte, error)
-+ GetTransient() (map[string]byte, error)
-+ GetBinding() ([]byte, error)
-+ GetDecorations() map[string][]byte
-+ GetSignedProposal() (*pb.SignedProposal, error)
-+ GetTxTimestamp() (*timestamp.Timestamp, error)
-+ SetEvent(name striing, payload []byte) error
-
-
----
-
-CommonIteratorInterface
-
-+ HasNext() bool
-+ Close() error
+## 3. chaincode运维者教程
 
 ---
 
 
-StateQueryIteratorInterface
+<div align="center">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/chaincode-class-diagram.jpeg?raw=true">
+</div>
 
-+ Next() (*queryresult.KV, error)
-
-
----
-
-
-HistoryQueryIteratorInterface
-
-+ Next() (*queryresult.KeyModification, error)
-
-
----
-
-
-MockQueryIteratorInterface
-
+<p align="center">
+  <b>图 1 chaincode api类图</b><br>
+</p>
 
 # chaincode开发、调试入门教程与相关api分析
 
