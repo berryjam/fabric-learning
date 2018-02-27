@@ -10,7 +10,7 @@ Chaincode通常处理区块链网络成员商定的业务逻辑，因此可以�
 
 ### 1.2 两种角色
 
-我们可以从两种不同的角色来认识chaincode。一个是从应用程序开发人员的角度出发，应用开发者会开发一个名为[Chaincode for Developers](https://github.com/berryjam/fabric-learning/blob/master/chaincode%E6%95%99%E7%A8%8B.md#2-chaincode%E5%BC%80%E5%8F%91%E8%80%85%E6%95%99%E7%A8%8B)的区块链应用程序／解决方案；另一个是面向区块链网络运维人员，[Chaincode for Operators]()，区块链网络运维人员负责管理区块链网络，并利用Hyperledger Fabric API来安装、实例化和升级chaincode，但很可能不会涉及chaincode应用程序的开发。
+我们可以从两种不同的角色来认识chaincode。一个是从应用程序开发人员的角度出发，应用开发者会开发一个名为[Chaincode for Developers](https://github.com/berryjam/fabric-learning/blob/master/chaincode%E6%95%99%E7%A8%8B.md#2-chaincode%E5%BC%80%E5%8F%91%E8%80%85%E6%95%99%E7%A8%8B)的区块链应用程序／解决方案；另一个是面向区块链网络运维人员，[Chaincode for Operators](https://github.com/berryjam/fabric-learning/blob/master/chaincode%E6%95%99%E7%A8%8B.md#3-chaincode%E8%BF%90%E7%BB%B4%E8%80%85%E6%95%99%E7%A8%8B)，区块链网络运维人员负责管理区块链网络，并利用Hyperledger Fabric API来安装、实例化和升级chaincode，但很可能不会涉及chaincode应用程序的开发。
 
 下面我们将分别从chaincode开发者和运维人员两方面对chaincode做一个较为详细的介绍，最后通过结合源码分析，加深对chaincode的理解。最后希望能帮助chaincode开发者能快速上手chaincode的开发，还有帮助chaincode运维人员能够保证chaincode能正常的运行。
 
