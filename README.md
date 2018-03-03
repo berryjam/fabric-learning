@@ -17,7 +17,13 @@
     
         - [1.3.1 客户端](https://github.com/berryjam/fabric-learning#131-%E5%AE%A2%E6%88%B7%E7%AB%AF)
 	
-        - [1.3.2 peer节点]()
+        - [1.3.2 peer节点](https://github.com/berryjam/fabric-learning#132-peer%E8%8A%82%E7%82%B9)
+	
+        - [1.3.3 orderer节点](https://github.com/berryjam/fabric-learning#133-orderer%E6%8E%92%E5%BA%8F%E6%9C%8D%E5%8A%A1%E8%8A%82%E7%82%B9)
+	
+            - [1.3.3.1 fabric典型事务处理过程](https://github.com/berryjam/fabric-learning#1331-fabric%E5%85%B8%E5%9E%8B%E4%BA%8B%E5%8A%A1%E5%A4%84%E7%90%86%E8%BF%87%E7%A8%8B)
+	    
+            - [1.3.3.2 broadcast、deliver接口分析](https://github.com/berryjam/fabric-learning#1332-broadcastdeliver%E6%8E%A5%E5%8F%A3%E5%88%86%E6%9E%90)
 
 fabric是区块链技术的实现，目标是成为开发区块链应用和解决方案的基础，更多详细信息请参考[文档](https://cn.hyperledger.org/)。    
   
@@ -413,7 +419,7 @@ func (ds *deliverServer) deliverBlocks(srv ab.AtomicBroadcast_DeliverServer, env
 到这里，ordering service的相关接口已经介绍完毕。
 
 
-#### 1.3.3.2 账本和区块
+#### 1.3.3.3 账本和区块
 
 账本（请参见[1.2.2节](https://github.com/berryjam/fabric-learning#122-%E8%B4%A6%E6%9C%AC)）包含ordering service输出的所有数据。简而言之，它是一系列`deliver(seqno, prevhash, blob)`事件，根据之前描述的`prevhash`的计算形成一个哈希链。
 
@@ -421,7 +427,7 @@ func (ds *deliverServer) deliverBlocks(srv ab.AtomicBroadcast_DeliverServer, env
 
 在下面，为了便于表述，假设每个`deliver`事件只包含一个blob。我们将定义ordering service属性（本小节其余部分），并解析事务的([背书流程](TODO)）。假设一个区块的`deliver`事件对应于一个区块内每个blob的单独`deliver`事件的序列，则根据上面提到的在一个区块内的blob的确定性排序，这些很容易扩展到块。
 
-#### 1.3.3.3 Ordering service属性
+#### 1.3.3.4 Ordering service属性
 
 Ordering service（或原子广播channel）的保证规定了广播消息发生了什么以及与deliver消息之间的关系（之间的关系请参考上面所述）。这些保证如下，`事实上这两条属性也是所有分布式系统的基础属性`：
 
