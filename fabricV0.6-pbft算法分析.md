@@ -4,17 +4,17 @@
 
     - [1.1 调用链代码或者部署链代码]()
   
-    - [1.2 读取配置文件]()
+    - [1.2 读取配置文件]()
 
-    - [1.3 实例化Engine]()
-    
-    - [1.4 ProcessTransactionMsg]()
+    - [1.3 实例化Engine]()
+
+    - [1.4 ProcessTransactionMsg]()
     
 -  [2. 收到链代码执行请求的peer节点对链代码执行、部署事务进行共识](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#2%E6%94%B6%E5%88%B0%E9%93%BE%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E8%AF%B7%E6%B1%82%E7%9A%84peer%E8%8A%82%E7%82%B9%E5%AF%B9%E9%93%BE%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E9%83%A8%E7%BD%B2%E4%BA%8B%E5%8A%A1%E8%BF%9B%E8%A1%8C%E5%85%B1%E8%AF%86)
 
     - [2.1 pbft算法简介](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#21-pbft%E7%AE%97%E6%B3%95%E7%AE%80%E4%BB%8B)
     
-        - [2.1.1 3阶段协议](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#211-3%E9%98%B6%E6%AE%B5%E5%8D%8F%E8%AE%AE)
+        - [2.1.1 3阶段协议](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#211-3%E9%98%B6%E6%AE%B5%E5%8D%8F%E8%AE%AE)
 	
         - [2.1.2 VIEW-CHANGE协议](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#212-view-change%E5%8D%8F%E8%AE%AE)
 	
@@ -22,9 +22,9 @@
 
         - [2.1.4 一些优化措施](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#214-%E4%B8%80%E4%BA%9B%E4%BC%98%E5%8C%96%E6%8E%AA%E6%96%BD)
         
-        - [2.1.5 小结](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#215-%E4%B8%80%E4%BA%9B%E4%BC%98%E5%8C%96%E6%8E%AA%E6%96%BD)
+        - [2.1.5 小结](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#215-%E4%B8%80%E4%BA%9B%E4%BC%98%E5%8C%96%E6%8E%AA%E6%96%BD)
         
-    - [2.2 pbft实现](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#22-pbft%E5%AE%9E%E7%8E%B0)
+     - [2.2 pbft实现](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#22-pbft%E5%AE%9E%E7%8E%B0)
         
         - [2.2.1 Event模型](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#221-event%E6%A8%A1%E5%9E%8B)
 
