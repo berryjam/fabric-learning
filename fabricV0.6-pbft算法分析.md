@@ -1,5 +1,38 @@
 # fabric拜占庭容错算法分析
 
+-  [1. 客户端向某个peer节点发送执行链代码请求](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#1%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%90%91%E6%9F%90%E4%B8%AApeer%E8%8A%82%E7%82%B9%E5%8F%91%E9%80%81%E6%89%A7%E8%A1%8C%E9%93%BE%E4%BB%A3%E7%A0%81%E8%AF%B7%E6%B1%82)
+
+    - [1.1 调用链代码或者部署链代码]()
+  
+    - [1.2 读取配置文件]()
+
+    - [1.3 实例化Engine]()
+    
+    - [1.4 ProcessTransactionMsg]()
+    
+-  [2. 收到链代码执行请求的peer节点对链代码执行、部署事务进行共识](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#2%E6%94%B6%E5%88%B0%E9%93%BE%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E8%AF%B7%E6%B1%82%E7%9A%84peer%E8%8A%82%E7%82%B9%E5%AF%B9%E9%93%BE%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E9%83%A8%E7%BD%B2%E4%BA%8B%E5%8A%A1%E8%BF%9B%E8%A1%8C%E5%85%B1%E8%AF%86)
+
+    - [2.1 pbft算法简介](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#21-pbft%E7%AE%97%E6%B3%95%E7%AE%80%E4%BB%8B)
+    
+        - [2.1.1 3阶段协议](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#211-3%E9%98%B6%E6%AE%B5%E5%8D%8F%E8%AE%AE)
+	
+        - [2.1.2 VIEW-CHANGE协议](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#212-view-change%E5%8D%8F%E8%AE%AE)
+	
+        - [2.1.3 垃圾回收](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#213-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6)
+
+        - [2.1.4 一些优化措施](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#214-%E4%B8%80%E4%BA%9B%E4%BC%98%E5%8C%96%E6%8E%AA%E6%96%BD)
+        
+        - [2.1.5 小结](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#215-%E4%B8%80%E4%BA%9B%E4%BC%98%E5%8C%96%E6%8E%AA%E6%96%BD)
+        
+    - [2.2 pbft实现](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#22-pbft%E5%AE%9E%E7%8E%B0)
+        
+        - [2.2.1 Event模型](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#221-event%E6%A8%A1%E5%9E%8B)
+
+        - [2.2.2 Timer定时器](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#222-timer%E5%AE%9A%E6%97%B6%E5%99%A8)
+        
+        - [2.2.3 pbft共识代码](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#223-pbft%E5%85%B1%E8%AF%86%E4%BB%A3%E7%A0%81)
+
+
 **Note：** fabric在v0.6分支实现了pbft算法，下面对其实现进行分析，以便能进一步掌握pbft算法以及了解如何在fabric实现共识算法插件，使得fabric支持不同的共识算法。
 
 
@@ -153,7 +186,7 @@ PBFT协议里提了几种优化措施：
     
     - MAC：其他地方的消息传输都是这种方法，这样能减少性能瓶颈。MAC消息本来是不能验证消息的真实性，但是论文作者提供了一个办法来绕过这个问题，这会用一些规则，比如两个正常节点相同的v和n，请求也是一样的。
 
-#### 2.1.5 一些优化措施
+#### 2.1.5 小结
 
 协议里面只介绍了主要的流程，很多实现的部分并没有说明，比如每个节点收到VIEW-CHANGE后怎么处理，MAC协议的共享密钥怎么分配，如果应对DDos攻击等等。
 
