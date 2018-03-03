@@ -3,6 +3,22 @@
 
 本文将从**系统架构**、**事务背书的基本工作流程**、**背书策略**、**有效账本和PeerLedger裁剪技术**这四方面对fabric进行介绍，主要参考[官方文档](http://hyperledger-fabric.readthedocs.io/en/latest/arch-deep-dive.html#)。 
 
+-  [1.系统架构](https://github.com/berryjam/fabric-learning#1%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84)
+
+    - [1.1 事务](https://github.com/berryjam/fabric-learning#11-%E4%BA%8B%E5%8A%A1)
+  
+    - [1.2 区块链数据结构](https://github.com/berryjam/fabric-learning#12-%E5%8C%BA%E5%9D%97%E9%93%BE%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84)
+
+        - [1.2.1 状态](https://github.com/berryjam/fabric-learning#121-%E7%8A%B6%E6%80%81)
+	
+        - [1.2.2 账本](https://github.com/berryjam/fabric-learning#122-%E8%B4%A6%E6%9C%AC)
+
+    - [1.3 节点](https://github.com/berryjam/fabric-learning#13-%E8%8A%82%E7%82%B9)
+    
+        - [1.3.1 客户端](https://github.com/berryjam/fabric-learning#131-%E5%AE%A2%E6%88%B7%E7%AB%AF)
+	
+        - [1.3.2 peer节点]()
+
 fabric是区块链技术的实现，目标是成为开发区块链应用和解决方案的基础，更多详细信息请参考[文档](https://cn.hyperledger.org/)。    
   
   
