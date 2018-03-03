@@ -30,7 +30,7 @@
 
         - [2.2.2 Timer定时器](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#222-timer%E5%AE%9A%E6%97%B6%E5%99%A8)
         
-        - [2.2.3 pbft共识代码](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#223-pbft%E5%85%B1%E8%AF%86%E4%BB%A3%E7%A0%81)
+        - [2.2.3 pbft共识代码](https://github.com/berryjam/fabric-learning/blob/master/fabricV0.6-pbft%E7%AE%97%E6%B3%95%E5%88%86%E6%9E%90.md#223-pbft%E5%85%B1%E8%AF%86%E4%BB%A3%E7%A0%81)
 
 
 **Note：** fabric在v0.6分支实现了pbft算法，下面对其实现进行分析，以便能进一步掌握pbft算法以及了解如何在fabric实现共识算法插件，使得fabric支持不同的共识算法。
