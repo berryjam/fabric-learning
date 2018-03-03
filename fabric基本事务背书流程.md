@@ -1,3 +1,19 @@
+-  [1. 基本事务背书流程](https://github.com/berryjam/fabric-learning/blob/master/fabric%E5%9F%BA%E6%9C%AC%E4%BA%8B%E5%8A%A1%E8%83%8C%E4%B9%A6%E6%B5%81%E7%A8%8B.md#1-%E5%9F%BA%E6%9C%AC%E4%BA%8B%E5%8A%A1%E8%83%8C%E4%B9%A6%E6%B5%81%E7%A8%8B)
+
+    - [1.1 客户端创建一个事务并将其发送给选择的背书peer节点](https://github.com/berryjam/fabric-learning/blob/master/fabric%E5%9F%BA%E6%9C%AC%E4%BA%8B%E5%8A%A1%E8%83%8C%E4%B9%A6%E6%B5%81%E7%A8%8B.md#11-%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E4%BA%8B%E5%8A%A1%E5%B9%B6%E5%B0%86%E5%85%B6%E5%8F%91%E9%80%81%E7%BB%99%E9%80%89%E6%8B%A9%E7%9A%84%E8%83%8C%E4%B9%A6peer%E8%8A%82%E7%82%B9)
+  
+        - [1.1.1 PROPOSE消息格式](https://github.com/berryjam/fabric-learning/blob/master/fabric%E5%9F%BA%E6%9C%AC%E4%BA%8B%E5%8A%A1%E8%83%8C%E4%B9%A6%E6%B5%81%E7%A8%8B.md#111-propose%E6%B6%88%E6%81%AF%E6%A0%BC%E5%BC%8F)
+
+        - [1.1.2 消息模式](https://github.com/berryjam/fabric-learning/blob/master/fabric%E5%9F%BA%E6%9C%AC%E4%BA%8B%E5%8A%A1%E8%83%8C%E4%B9%A6%E6%B5%81%E7%A8%8B.md#112-%E6%B6%88%E6%81%AF%E6%A8%A1%E5%BC%8F)
+
+    - [1.2 背书peer节点模拟事务并产生背书签名](https://github.com/berryjam/fabric-learning/blob/master/fabric%E5%9F%BA%E6%9C%AC%E4%BA%8B%E5%8A%A1%E8%83%8C%E4%B9%A6%E6%B5%81%E7%A8%8B.md#12-%E8%83%8C%E4%B9%A6peer%E8%8A%82%E7%82%B9%E6%A8%A1%E6%8B%9F%E4%BA%8B%E5%8A%A1%E5%B9%B6%E4%BA%A7%E7%94%9F%E8%83%8C%E4%B9%A6%E7%AD%BE%E5%90%8D)
+
+    - [1.3 提交的客户端收集事务的倍数并通过ordering service进行广播](https://github.com/berryjam/fabric-learning/blob/master/fabric%E5%9F%BA%E6%9C%AC%E4%BA%8B%E5%8A%A1%E8%83%8C%E4%B9%A6%E6%B5%81%E7%A8%8B.md#13-%E6%8F%90%E4%BA%A4%E7%9A%84%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%94%B6%E9%9B%86%E4%BA%8B%E5%8A%A1%E7%9A%84%E5%80%8D%E6%95%B0%E5%B9%B6%E9%80%9A%E8%BF%87ordering-service%E8%BF%9B%E8%A1%8C%E5%B9%BF%E6%92%AD)
+    
+    - [1.4 ordering service向peer节点交付事务](https://github.com/berryjam/fabric-learning/blob/master/fabric%E5%9F%BA%E6%9C%AC%E4%BA%8B%E5%8A%A1%E8%83%8C%E4%B9%A6%E6%B5%81%E7%A8%8B.md#14-ordering-service%E5%90%91peer%E8%8A%82%E7%82%B9%E4%BA%A4%E4%BB%98%E4%BA%8B%E5%8A%A1)
+    
+    - [1.5 基本事务背书流程总结](https://github.com/berryjam/fabric-learning/blob/master/fabric%E5%9F%BA%E6%9C%AC%E4%BA%8B%E5%8A%A1%E8%83%8C%E4%B9%A6%E6%B5%81%E7%A8%8B.md#15-%E5%9F%BA%E6%9C%AC%E4%BA%8B%E5%8A%A1%E8%83%8C%E4%B9%A6%E6%B5%81%E7%A8%8B%E6%80%BB%E7%BB%93)
+
 # 1. 基本事务背书流程
 
 下面我们从高层次的角度概述一个事务的请求流程。
