@@ -24,6 +24,10 @@
             - [1.3.3.1 fabric典型事务处理过程](https://github.com/berryjam/fabric-learning#1331-fabric%E5%85%B8%E5%9E%8B%E4%BA%8B%E5%8A%A1%E5%A4%84%E7%90%86%E8%BF%87%E7%A8%8B)
 	    
             - [1.3.3.2 broadcast、deliver接口分析](https://github.com/berryjam/fabric-learning#1332-broadcastdeliver%E6%8E%A5%E5%8F%A3%E5%88%86%E6%9E%90)
+	    
+            - [1.3.3.3 账本和区块](https://github.com/berryjam/fabric-learning#1333-%E8%B4%A6%E6%9C%AC%E5%92%8C%E5%8C%BA%E5%9D%97)
+	    
+            - [1.3.3.4 Ordering service属性](https://github.com/berryjam/fabric-learning#1334-ordering-service%E5%B1%9E%E6%80%A7)	    
 
 fabric是区块链技术的实现，目标是成为开发区块链应用和解决方案的基础，更多详细信息请参考[文档](https://cn.hyperledger.org/)。    
   
