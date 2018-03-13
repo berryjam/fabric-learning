@@ -10,7 +10,7 @@
 
     - [2.1 chaincode API]()
     
-    - [2.2 示例：“简单资产管理” Chaincode]()
+    - [2.2 示例：“简单资产管理” chaincode]()
     
     - [2.3 安装Hyperledger Fabric示例]()
     
