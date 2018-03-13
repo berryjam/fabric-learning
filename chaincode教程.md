@@ -30,7 +30,7 @@
     
 - [3. chaincode运维者教程](https://github.com/berryjam/fabric-learning/blob/master/chaincode%E6%95%99%E7%A8%8B.md#3-chaincode%E8%BF%90%E7%BB%B4%E8%80%85%E6%95%99%E7%A8%8B)
 
-- [4. 参考]()
+- [4. 参考](https://github.com/berryjam/fabric-learning/blob/master/chaincode%E6%95%99%E7%A8%8B.md#4-%E5%8F%82%E8%80%83)
 
 ## 1. 概要
 
@@ -52,10 +52,9 @@ Chaincode通常处理区块链网络成员商定的业务逻辑，因此可以�
 
 ## 3. chaincode运维者教程 
 
-## 4. 参考
-
 ---
 
+## 4. 参考
 
 <div align="center">
 <img src="https://github.com/berryjam/fabric-learning/blob/master/markdown_graph/chaincode-class-diagram.jpeg?raw=true">
