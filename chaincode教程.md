@@ -54,7 +54,21 @@ Chaincode通常处理区块链网络成员商定的业务逻辑，因此可以�
 
 ## 2. chaincode开发者教程
 
+### 2.1 chaincode API
 
+每个chaincode程序必须实现`Chaincode接口`：
+
+- [Go](http://godoc.org/github.com/hyperledger/fabric/core/chaincode/shim#ChaincodeStub)
+
+- [node.js](https://fabric-shim.github.io/ChaincodeStub.html)
+
+Chaincode接口被调用以回应接收到的事务。特别是当chaincode接收`instantiate`或`upgrade`事务时，会调用`Init`方法，以便chaincode可以执行任何必要的初始化，包括应用程序状态的初始化。`Invoke`方法是为了响应接收调用事务来处理事务提案。PS：当通过命令行方式peer chaincode invoke XXX 就会调用指定chaincode重写的`Invoke`方法。
+
+chaincode "shim" API的另外一个接口是`ChaincodeStubInterface`:
+
+- [Go](http://godoc.org/github.com/hyperledger/fabric/core/chaincode/shim#ChaincodeStub)
+
+- [node.js](https://fabric-shim.github.io/ChaincodeStub.html)
 
 ## 3. chaincode运维者教程 
 
