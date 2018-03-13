@@ -70,6 +70,10 @@ chaincode "shim" API的另外一个接口是`ChaincodeStubInterface`:
 
 - [node.js](https://fabric-shim.github.io/ChaincodeStub.html)
 
+这个接口用于访问和修改区块账本，并在chaincode之间能够互相调用。
+
+在本教程中，我们将通过实现一个用于管理简单“资产”的简单chiancode应用来描述如何使用这些API。
+
 ## 3. chaincode运维者教程 
 
 ---
