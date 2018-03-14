@@ -72,7 +72,7 @@ chaincode "shim" API的另外一个接口是`ChaincodeStubInterface`:
 
 这个接口用于访问和修改区块账本，并在chaincode之间能够互相调用。
 
-在本教程中，我们将通过实现一个用于管理简单“资产”的简单chiancode应用来描述如何使用这些API。
+**在本教程中，我们将通过实现一个用于管理简单“资产”的简单chiancode应用来描述如何使用这些API，所有API请参考文末的图1。如`GetState`、`PutState`、`GetHistoryForKey`、`CreateCompositeKey`、`GetStateByPartialCompositeKey`、`DelState`等等，通过这些API基本能完成传统关系型数据的增删改查操作。**
 
 ### 2.2 一个简单示例：“资产管理” chaincode
 
@@ -93,6 +93,14 @@ mkdir -p $GOPATH/src/sacc && cd $GOPATH/src/sacc
 
 ```
 touch sacc.go
+```
+
+#### 2.2.2 基本框架
+
+首先，我们从chaincode的基本框架开始。每个chaincode都一样，都会实现[chaincode接口](http://godoc.org/github.com/hyperledger/fabric/core/chaincode/shim#Chaincode)，即`Init`和`Invoke`函数。因此，让我们添加go import语句以获取chaincode的必要依赖代码（类似于java的import、c语言的#include）。我们将导入chaincode shim包和[peer protobuf package](http://godoc.org/github.com/hyperledger/fabric/protos/peer)。接下来，让我们添加一个结构`SimpleAsset`作为chaincode shim函数的接收方。
+
+```
+
 ```
 
 ## 3. chaincode运维者教程 
