@@ -10,7 +10,7 @@
 
     - [2.1 chaincode API]()
     
-    - [2.2 示例：“简单资产管理” chaincode]()
+    - [2.2 一个简单示例：“资产管理” chaincode]()
     
     - [2.3 安装Hyperledger Fabric示例]()
     
@@ -73,6 +73,27 @@ chaincode "shim" API的另外一个接口是`ChaincodeStubInterface`:
 这个接口用于访问和修改区块账本，并在chaincode之间能够互相调用。
 
 在本教程中，我们将通过实现一个用于管理简单“资产”的简单chiancode应用来描述如何使用这些API。
+
+### 2.2 一个简单示例：“资产管理” chaincode
+
+我们的应用程序是一个基本示例chaincode，用于在账本上创建资产（键值对）。
+
+#### 2.2.1 选择代码的位置
+
+如果你之前没用过Go语言编程，你可能需要确保已安装[Go编程语言](http://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html#golang)并且已正确设置好GO的开发环境。
+
+现在，你需要为chaincode应用程序创建一个目录作为`$GOPATH/src/`的子目录。
+
+为了简单起见，我们使用下面的命令：
+```
+mkdir -p $GOPATH/src/sacc && cd $GOPATH/src/sacc
+```
+
+现在，让我们创建即将补充代码的源文件：
+
+```
+touch sacc.go
+```
 
 ## 3. chaincode运维者教程 
 
