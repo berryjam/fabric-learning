@@ -114,6 +114,73 @@ type SimpleAsset struct {
 }
 ```
 
+#### 2.2.3 初始化chaincode
+
+接下来，我们将实现`Init`函数。
+
+```
+// Init is called during chaincode instantiation to initialize any data.
+func (t *SimpleAsset) Init(stub shim.ChaincodeStubInterface) peer.Response {
+
+}
+```
+
+**Note.请注意，chaincode升级也会调用此函数。在编写将升级现有chaincode的chiancode的时候，请确保是当地修改`Init`函数。特别是，如果没有“迁移”或没有任何内容作为升级的一部分进行初始化，请提供一个空洞“Init”方法。**
+
+接下来，我们将使用[ChaincodeStubInterface.GetStringArgs]()函数来获取`Init`调用的参数并检查其有效性。在我们的例子中，我们将获取到一个键值对。
+
+```
+// Init is called during chaincode instantiation to initialize any
+// data. Note that chaincode upgrade also calls this function to reset
+// or to migrate data, so be careful to avoid a scenario where you
+// inadvertently clobber your ledger's data!
+func (t *SimpleAsset) Init(stub shim.ChaincodeStubInterface) peer.Response {
+  // Get the args from the transaction proposal
+  args := stub.GetStringArgs()
+  if len(args) != 2 {
+    return shim.Error("Incorrect arguments. Expecting a key and a value")
+  }
+}
+```
+
+再接下来，现在我们已经确定这个调用成功，我们将把初始状态存储到账本中。要完成这个存储动作，我们将调用函数[ChaincodeStubInterface.PutState](http://godoc.org/github.com/hyperledger/fabric/core/chaincode/shim#ChaincodeStub.PutState)，并将key、value作为参数传入。假设一切顺利，返回一个指示初始化成功的peer.Response对象。
+
+```
+// Init is called during chaincode instantiation to initialize any
+// data. Note that chaincode upgrade also calls this function to reset
+// or to migrate data, so be careful to avoid a scenario where you
+// inadvertently clobber your ledger's data!
+func (t *SimpleAsset) Init(stub shim.ChaincodeStubInterface) peer.Response {
+  // Get the args from the transaction proposal
+  args := stub.GetStringArgs()
+  if len(args) != 2 {
+    return shim.Error("Incorrect arguments. Expecting a key and a value")
+  }
+
+  // Set up any variables or assets here by calling stub.PutState()
+
+  // We store the key and the value on the ledger
+  err := stub.PutState(args[0], []byte(args[1]))
+  if err != nil {
+    return shim.Error(fmt.Sprintf("Failed to create asset: %s", args[0]))
+  }
+  return shim.Success(nil)
+}
+```
+
+#### 调用 chaincode
+
+首先，我们添加`Invoke`函数的签名。
+
+```
+// Invoke is called per transaction on the chaincode. Each transaction is
+// either a 'get' or a 'set' on the asset created by Init function. The 'set'
+// method may create a new asset by specifying a new key-value pair.
+func (t *SimpleAsset) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+
+}
+```
+
 ## 3. chaincode运维者教程 
 
 ---
