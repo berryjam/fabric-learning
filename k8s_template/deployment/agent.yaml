@@ -1,1 +1,195 @@
-
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: baas-agent
+  labels:
+    app: baas-agent
+spec:
+  replicas: {{.Spec.Replicas}}
+  template:
+    metadata:
+      labels:
+        app: baas-agent
+    spec:
+      terminationGracePeriodSeconds: 0
+      securityContext:
+        runAsUser: 1000
+      containers:
+      - name: baas-agent
+        {{range .Spec.Envs}}
+        {{if eq .Name "IMAGE_NAME_BAAS_AGENT"}}
+        image: {{ .Value }}
+        {{end}}
+        {{end}}
+        imagePullPolicy: Always
+        securityContext:
+          runAsUser: 1000
+        volumeMounts:
+          - mountPath: /host/var/run
+            name: varrun
+          {{range .Spec.Extensions.PeerUsers}}
+          - mountPath: /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/{{.OrgDomain}}/admin
+            name: {{.Name}}
+          {{end}}
+          {{range .Spec.Extensions.OrdererUsers}}
+          - mountPath: /opt/gopath/src/github.com/hyperledger/fabric/orderer/crypto/ordererOrganizations/{{.OrgDomain}}/admin
+            name: {{.Name}}
+          {{end}}
+          {{if ne .DeployType "invite"}}
+          - mountPath: /etc/hyperledger/configtx
+            name: txblock
+          {{end}}
+          - mountPath: /etc/localtime
+            name: localtime
+            readOnly: true
+          - mountPath: /etc/hyperledger/agentconfig
+            name: baasagentconfig
+          - mountPath: /var/paas/srv/kubernetes
+            name: cipher
+          - mountPath: /etc/hyperledger/fabric-sdk
+            name: baasagentfabricsdk
+          - mountPath: /etc/hyperledger/channelconfigs
+            name: channelconfigs
+          - mountPath: /etc/hyperledger/anchorconfigs
+            name: anchorconfigs
+          - mountPath: /etc/hyperledger/genesisblock
+            name: genesisblock
+          - mountPath: /etc/hyperledger/ipmapping
+            name: ipmapping
+          - mountPath: /var/log/baas-agent/
+            name: agentlog
+            policy:
+              logs:
+                rotate: Daily
+            readOnly: false
+          {{if ne .VolumeType "host"}}
+          - mountPath: /home/paas/evs/
+            name: agentpwd
+          {{end}}
+        env:
+          - name: GOPATH
+            value: /opt/gopath
+          - name: CORE_VM_ENDPOINT
+            value: unix:///host/var/run/docker.sock
+          - name: CORE_LOGGING_LEVEL
+            value: DEBUG
+          - name: CORE_PEER_ID
+            value: cli
+          - name: TLS_ENABLE
+            value: "{{.Enabled}}"
+          - name: CORE_CHAINCODE_KEEPALIVE
+            value: "10"
+          - name: BAAS_ENABLE_CERT_ENCRYPT
+            value: "true"
+          - name: BAAS_AGENT_RATELIMIT_ENABLE
+            value: "true"
+          - name: BAAS_AGENT_RATELIMIT_QPS
+            value: "1000.0"
+          - name: BAAS_AGENT_PWD_PATH
+            value: "/home/paas/evs/baas/{{.BlockchainId}}/"
+          - name: BAAS_AGENT_PORTAL_URL
+            {{range .Spec.Envs}}
+            {{if eq .Name "BAAS_AGENT_PORTAL_URL"}}
+            value: {{ .Value }}
+            {{end}}
+            {{end}}
+          - name: PAAS_CRYPTO_PATH
+            value: /var/paas/srv/kubernetes
+            {{range .Spec.Envs}}
+            {{if eq .Name "DEPLOY_FABRIC"}}
+          - name: DEPLOY_FABRIC
+            value: "false"
+            {{end}}
+            {{end}}
+        command:
+          - /bin/bash
+          - -c
+          - sudo chmod 666 /etc/hosts;mkdir -p /home/paas/evs/baas/{{.BlockchainId}}/; mkdir -p /home/paas/evs/baas/{{.BlockchainId}}/etc/hyperledger/configtx; find /opt/gopath/src/github.com/hyperledger/fabric/ -type d | xargs -i chmod 700 {}; find /opt/gopath/src/github.com/hyperledger/fabric/ -type f | xargs -i chmod 600 {}; if [ -f "/home/paas/evs/baas/{{.BlockchainId}}/pwd" ]; then sudo chown paas:paas /home/paas/evs/baas/{{.BlockchainId}}/pwd;chmod 644 /home/paas/evs/baas/{{.BlockchainId}}/pwd; fi; sudo chown -R paas:paas /etc/hyperledger; sudo chown -R paas:paas /opt/gopath/src; sudo chown -R paas:paas /var/log/baas-agent; chmod 750 /var/log/baas-agent;touch /var/log/baas-agent/baas-agent.trace; touch /var/log/baas-agent/auditlog.log;chown paas:paas /var/log/baas-agent/baas-agent.trace;chown paas:paas /var/log/baas-agent/auditlog.log; chmod 640 /var/log/baas-agent/baas-agent.trace; chmod 640 /var/log/baas-agent/auditlog.log; localIP=`/sbin/ip route get 1.2.3.4 | head -1 | cut -d ' ' -f8`; sed -i "s/HTTPSAddr.*/HTTPSAddr = ${localIP}/" /home/paas/conf/app.conf; sed -i "s/httpaddr.*/httpaddr = ${localIP}/" /home/paas/conf/app.conf;cd conf;sudo /home/paas/conf/checkIpTask.sh 20;cd ..;sudo sed -i "s/%paas ALL=(ALL) NOPASSWD:NOPASSWD:ALL/%paas ALL=(root) NOPASSWD:NOPASSWD:ALL/g" /etc/sudoers; ./baas-agent sleep infinity
+      volumes:
+      {{if ne .VolumeType "host"}}
+      - name: agentpwd
+        persistentVolumeClaim:
+          claimName: pvc-baas
+      {{end}}
+      - hostPath:
+          path: /var/run
+        name: varrun
+      - hostPath:
+          path: /var/paas/srv/kubernetes
+        name: cipher
+      - hostPath:
+          path: /etc/localtime
+        name: localtime
+      - hostPath:
+          path: /var/paas/sys/log/baas-agent
+        name: agentlog
+      - name: baasagentconfig
+        configMap:
+          name: agentfileconfig
+          items:
+          - key: agentconfigyaml
+            path: agentconfig.json
+      - name: baasagentfabricsdk
+        configMap:
+          name: agentfabricsdk
+          items:
+          - key: sdkyaml
+            path: fabric-sdk.yaml
+      - name: channelconfigs
+        configMap:
+          name: channelconfigs
+          items:
+          - key: channelconfigs
+            path: configsjson
+      - name: anchorconfigs
+        configMap:
+          name: anchorconfigs
+          items:
+          - key: anchorconfigs
+            path: configsjson
+      - name: genesisblock
+        configMap:
+          name: genesisblock
+          items:
+          - key: genesisblock
+            path: configsjson
+      - name: ipmapping
+        configMap:
+          name: ipmapping
+          items:
+          - key: ipmapping
+            path: ipmappingjson
+      {{if ne .DeployType "invite"}}
+      - name: txblock
+        secret:
+          secretName: hyperledgerchannelconfig
+          items:
+          {{range .Spec.Extensions.PeerChannels}}
+          - key: {{.Key}}
+            path: {{.Path}}
+          {{end}}
+          {{range .Spec.Extensions.AnchorPeers}}
+          - key: {{.Key}}
+            path: {{.Path}}
+          {{end}}
+      {{end}}
+      {{range .Spec.Extensions.PeerUsers}}
+      - name: {{.Name}}
+        secret:
+          secretName: {{.SecretName}}
+          items:
+          {{range .PeerUserCerts}}
+          - key: {{.Key}}
+            path: {{.Path}}
+          {{end}}
+      {{end}}
+      {{range .Spec.Extensions.OrdererUsers}}
+      - name: {{.Name}}
+        secret:
+          secretName: {{.SecretName}}
+          items:
+          {{range .PeerUserCerts}}
+          - key: {{.Key}}
+            path: {{.Path}}
+          {{end}}
+      {{end}}
