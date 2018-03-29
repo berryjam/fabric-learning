@@ -1,1 +1,140 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agentfabricsdk
+data:
+  sdkyaml: |
+    name: "global-trade-network"
 
+    x-type: "hlfv1"
+    x-loggingLevel: info
+
+    description: "The network to be in if you want to stay in the global trade business"
+
+    version: 1.0.0
+
+    client:
+
+      organization: {{.SDKData.Organization}}
+
+      logging:
+        level: info
+
+      peer:
+        timeout:
+          connection: 3s
+          queryResponse: 45s
+          executeTxResponse: 30s
+      eventService:
+        timeout:
+          connection: 50s
+          registrationResponse: 50s
+      orderer:
+        timeout:
+          connection: 5s
+          response: 45s
+
+      cryptoconfig:
+        path: /opt/gopath/src/github.com/hyperledger/fabric
+
+      credentialStore:
+        path: "/tmp/hfc-kvs"
+
+        cryptoStore:
+          path: /tmp/msp
+
+        wallet: wallet-name
+
+      BCCSP:
+        security:
+         enabled: true
+         default:
+          provider: "{{.SignAlgorithm}}"
+         hashAlgorithm: "{{.SignAlgorithmHash}}"
+         softVerify: true
+         ephemeral: false
+         level: 256
+
+    channels:
+      {{range $k,$v := .SDKData.Channels}}
+      {{$k}}:
+        orderers:
+          {{range $orderer := $v.Orderers}}
+          - {{$orderer}}
+          {{end}}
+        peers:
+          {{range $peer := $v.Peers}}
+          {{$peer}}:
+            endorsingPeer: true
+            chaincodeQuery: true
+            ledgerQuery: true
+            eventSource: true
+          {{end}}
+        chaincodes:
+          - {{$v.ChainCodeFullName}}
+      {{end}}
+    organizations:
+      {{range $k,$v := .SDKData.Organizations.PeerOrg}}
+      {{$k}}:
+        mspid: {{$v.Mspid}}
+
+        cryptoPath:  {{$v.CryptoPath}}
+
+        peers:
+          {{range $PeerValue := $v.Peers}}
+          - {{$PeerValue}}
+          {{end}}
+        certificateAuthorities:
+          - ca-org1
+
+        adminPrivateKey:
+          pem: "-----BEGIN PRIVATE KEY----- <etc>"
+        signedCert:
+          path: "/tmp/somepath/signed-cert.pem"
+      {{end}}
+      ordererorg:
+          mspID: "{{$.SDKData.Organizations.Ordererorg.MspId}}"
+
+          cryptoPath: {{$.SDKData.Organizations.Ordererorg.CryptoPath}}
+
+    orderers:
+      {{range $v := .SDKData.Orders}}
+      {{$v.OrderName}}:
+        url: {{$.SDKData.TLS}}://{{$v.OrderName}}:7050
+
+        grpcOptions:
+          ssl-target-name-override: {{$v.OrderName}}
+          grpc-max-send-message-length: 15
+
+        tlsCACerts:
+          path: {{$v.Path}}
+      {{end}}
+    peers:
+      {{range $v := .SDKData.Peers}}
+      {{$v.PeerName}}:
+        url: {{$.SDKData.TLS}}://{{$v.PeerName}}:7051
+
+        eventUrl: {{$.SDKData.TLS}}://{{$v.PeerName}}:7053
+ 
+         grpcOptions:
+          ssl-target-name-override: {{$v.PeerName}}
+          grpc.http2.keepalive_time: 15
+
+        tlsCACerts:
+          path: {{$v.Path}}
+      {{end}}
+    certificateAuthorities:
+      ca-org1:
+        url: https://ca_peerOrg1:7054
+        httpOptions:
+          verify: true
+        tlsCACerts:
+          path: $GOPATH/src/github.com/hyperledger/fabric-sdk-go/test/api-server/tls/fabricca/certs/ca_root.pem
+          client:
+           keyfile: $GOPATH/src/github.com/hyperledger/fabric-sdk-go/test/api-server/tls/fabricca/certs/client/client_fabric_client-key.pem
+           certfile: $GOPATH/src/github.com/hyperledger/fabric-sdk-go/test/api-server/tls/fabricca/certs/client/client_fabric_client.pem
+
+        registrar:
+          enrollId: admin
+          enrollSecret: adminpw
+        caName: ca-org1
