@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-baas
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Recycle
+  {{if eq .VolumeType "evs"}}
+  flexVolume:
+    driver: huawei.com/fuxinfs
+    fsType: nfs
+    options:
+      deviceMountPath: {{.VolumePath}}
+      fsType: nfs
+      kubernetes.io/namespace: {{.Namespace}}
+      kubernetes.io/storagetype: NFS
+      volumeID: {{.VolumeAddr}}
+  {{end}}
+  {{if eq .VolumeType "nfs"}}
+  nfs:
+    path: /c/nfs
+    server: {{.VolumeAddr}}
+  {{end}}
