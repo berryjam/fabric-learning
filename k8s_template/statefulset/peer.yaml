@@ -1,1 +1,174 @@
-
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{.Name}}
+  labels:
+    app: {{.Name}}
+spec:
+  replicas: {{.Spec.Replicas}}
+  serviceName: {{.Name}}
+  template:
+    metadata:
+      labels:
+        app: {{.Name}}
+    spec:
+      terminationGracePeriodSeconds: 0
+      securityContext:
+        runAsUser: 1000
+      initContainers:
+      - command:
+        - /bin/sh
+        - -c
+        - set -ex; HOSTNAME=`hostname`; function recursive_copy_file() { dirlist=$(ls $1);for name in ${dirlist[*]}; do if [ -f $1/$name ]; then if [ ! -f $2/$name ]; then cp $1/$name $2/$name; fi elif [ -d $1/$name ]; then if [ ! -d $2/$name ]; then mkdir -p $2/$name; fi; recursive_copy_file $1/$name $2/$name; fi done };source_dir=/mnt/msp/$HOSTNAME/;dest_dir=/etc/hyperledger/peer/msp/;recursive_copy_file $source_dir $dest_dir; chown -R paas:paas /var/log/baas-service; chmod 750 /var/log/baas-service; chmod 750 /var/log/baas-service/peer;
+        {{range .Spec.Envs}}
+        {{if eq .Name "CORE_PEER_BASEOS_IMAGE_NAME"}}
+        image: {{ .Value }}
+        {{end}}
+        {{end}}
+        imagePullPolicy: IfNotPresent
+        name: init-secret
+        volumeMounts:
+        {{range .Spec.SecretVolumes}}
+        - mountPath: /mnt/msp/{{.Name}}
+          name: {{.Name}}
+        {{end}}
+        - mountPath: /etc/hyperledger/peer/msp
+          name: peercerts
+        - mountPath: /var/log/baas-service/peer
+          name: peerlog
+        securityContext:
+          runAsUser: 0
+      containers:
+      - name: peer
+        {{range .Spec.Envs}}
+        {{if eq .Name "IMAGE_NAME_PEER"}}
+        image: {{ .Value }}
+        {{end}}
+        {{end}}
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 1000
+        ports:
+        - containerPort: 7051
+        - containerPort: 7053
+        volumeMounts:
+        - mountPath: /etc/hyperledger/peer/msp
+          name: peercerts
+        - mountPath: /var/paas/srv/kubernetes
+          name: cipher
+        - mountPath: /etc/localtime
+          name: localtime
+          readOnly: true
+        - mountPath: /host/var/run/
+          name: dockersock
+        - mountPath: /etc/hyperledger/temp_fabriccoreconfigmap
+          name: fabriccoreconfigmap
+        - mountPath: /var/log/baas-service/peer/
+          name: peerlog
+          policy:
+            logs:
+              rotate: Daily
+          readOnly: false
+        {{if ne .VolumeType "host"}}
+        - mountPath: /home/paas/evs/
+          name: evsdir
+        {{end}}
+        env:
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: CORE_VM_ENDPOINT
+          value: unix:///host/var/run/docker.sock
+        - name: CORE_LOGGING_PEER
+          value: info
+        - name: CORE_PEER_MSPCONFIGPATH
+          value: /etc/hyperledger/fabric/msp
+        - name: PAAS_CRYPTO_PATH
+          value: /var/paas/srv/kubernetes
+        {{range .Spec.Envs}}
+        {{if eq .Name "CORE_PEER_API_SERVER"}}
+        - name: CORE_PEER_API_SERVER
+          value: {{.Value}}
+        {{end}}
+        {{end}}
+        {{range .Spec.Envs}}
+        {{if eq .Name "CORE_PEER_NAMESPACE"}}
+        - name: CORE_PEER_NAMESPACE
+          value: {{.Value}}
+        {{end}}
+        {{end}}
+        {{range .Spec.Envs}}
+        {{if eq .Name "CORE_PEER_CCENV_IMAGE_NAME"}}
+        - name: CORE_PEER_CCENV_IMAGE_NAME
+          value: {{.Value}}
+        {{end}}
+        {{end}}
+        {{range .Spec.Envs}}
+        {{if eq .Name "CORE_PEER_BASEOS_IMAGE_NAME"}}
+        - name: CORE_PEER_BASEOS_IMAGE_NAME
+          value: {{.Value}}
+        {{end}}
+        {{end}}
+        - name: CORE_CHAINCODE_LOGGING_LEVEL
+          value: DEBUG
+        {{range .Spec.Envs}}
+        {{if eq .Name "CORE_PEER_LOCALMSPID"}}
+        - name: CORE_PEER_LOCALMSPID
+          value: {{.Value}}
+        {{end}}
+        {{end}}
+        command:
+        - /bin/bash
+        - -c
+        - 'HOSTNAME=`hostname`; sudo chown -R paas:paas /etc/hyperledger; dockerSockerFile=$(ls -n /host/var/run/|grep docker.sock); dockerGid=$(echo $dockerSockerFile|cut -d " " -f 4); sudo groupadd -g $dockerGid docker; sudo usermod -G $dockerGid paas; chown -R paas:paas /var/log/baas-service/peer; chmod 750 /var/log/baas-service/peer; cp /etc/hyperledger/temp_fabriccoreconfigmap/core.yaml /etc/hyperledger/fabric/; cd /etc/hyperledger/fabric; set -ex; HOSTNAME=`hostname`;sed -i "/fileSystemPath: \/var\/hyperledger\/production/c\    fileSystemPath: /home/paas/evs/baas/{{.BlockchainId}}/$HOSTNAME/production" core.yaml;sed -i "/id: jdoe/c\    id: $HOSTNAME" core.yaml;sed -i "/localMspId: DEFAULT/c\    localMspId: {{.Spec.MspId}}" core.yaml;sed -i "/address: 0.0.0.0:7051/c\    address: $HOSTNAME.{{.Spec.OrgDomain}}:7051" core.yaml; localIP=`/sbin/ip route get 1.2.3.4 | head -1 | cut -d " " -f8`;sed -i "s/listenAddress: 0.0.0.0:7051/listenAddress: ${localIP}:7051/g" core.yaml; sed -i "s/address: 0.0.0.0:7053/address: ${localIP}:7053/g" core.yaml; rm -rf msp;cp -r /etc/hyperledger/peer/msp .; export >>/home/paas/.bashrc; sudo su - paas -c "source /home/paas/.bashrc; sudo sed -i \"s/%paas ALL=(ALL) NOPASSWD:NOPASSWD:ALL/#%paas ALL=(ALL) NOPASSWD:NOPASSWD:ALL/g\" /etc/sudoers; peer node start"'
+      volumes:
+      - name: peercerts
+        emptyDir: {}
+      - name: dockersock
+        hostPath:
+          path: /var/run/
+      - hostPath:
+          path: /var/paas/srv/kubernetes
+        name: cipher
+      - hostPath:
+          path: /etc/localtime
+        name: localtime
+      - hostPath:
+          path: /var/paas/sys/log/baas-service/peer
+        name: peerlog
+      - name: fabriccoreconfigmap
+        configMap:
+          name: fabriccoreconfigmap
+          defaultMode: 384
+          items:
+          - key: coreyaml
+            path: core.yaml
+      {{if ne .VolumeType "host"}}
+      - name: evsdir
+        persistentVolumeClaim:
+          claimName: pvc-baas
+      {{end}}
+      {{range .Spec.SecretVolumes}}
+      - name: {{.Name}}
+        secret:
+          secretName: {{.SecretName}}
+          defaultMode: 384
+          items:
+            - key: peermspadmincerts
+              path: admincerts/Admin@org1.example.com-cert.pem
+            - key: peermspcacerts
+              path: cacerts/ca.org1.example.com-cert.pem
+            - key: peermspkeystore
+              path: keystore/{{.KeystorePath}}
+            - key: peermspsigncerts
+              path: signcerts/peer0.org1.example.com-cert.pem
+            - key: peermsptlscacerts
+              path: tlscacerts/tlsca.org1.example.com-cert.pem
+            - key: ca.crt
+              path: tls/ca.crt
+            - key: peerserverkey
+              path: tls/server.key
+            - key: peerservercrt
+              path: tls/server.crt
+      {{end}}
