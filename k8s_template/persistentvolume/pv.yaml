@@ -10,7 +10,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   {{if eq .VolumeType "evs"}}
   flexVolume:
-    driver: huawei.com/fuxinfs
+    driver: xxx.com/fuxinfs
     fsType: nfs
     options:
       deviceMountPath: {{.VolumePath}}
