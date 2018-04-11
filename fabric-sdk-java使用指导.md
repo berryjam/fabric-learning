@@ -47,7 +47,7 @@ private Properties getEndPointProperties(final String type, final String name) {
 
 改用例包含了create channel、join channel、insta chaincode、instantitate chaincode、invoke、query等所有相关操作，该配置是按照fabric官方环境搭建指导文档配置。运行在我们的环境会有一些小问题，如果仅需要invoke和query功能，可参考下面自己实现的用例。
  
- 
+demo代码：[SendTx.java](https://github.com/berryjam/fabric-learning/blob/master/SendTx.java)
 
 该测试用例测试的是example02的chaincode，若测试该chaincode修改最前面的一些参数信息即可运行。若测试其他chaincode，修改invoke()、query()函数的fcn及args即可。
 完成修改后run setup()函数即可进行测试。
