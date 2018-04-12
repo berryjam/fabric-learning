@@ -29,13 +29,17 @@ github地址：https://github.com/hyperledger/fabric-sdk-java
 
 2）	当前公有云的环境只支持grcps方式，ip和port可以通过下载SDK配置文件来确定，ip为bcs实例所属的集群公网ip，而peer的port一般从30605开始。具体可参考下图以及相关字段说明。
 
+<div align="center">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/sdk_usage_pic/testconfig_update.png?raw=true">
+</div>
 
+- peerOrg1.mspid：ea24fef7f9427f8086859fad278c7748e316b24cMSP（根据sdk配置内容修改，对应sdk的yaml文件的mspid）；
 
-- peerOrg1.mspid：ea24fef7f9427f8086859fad278c7748e316b24cMSP（根据sdk配置内容修改，对应sdk的yaml文件的mspid）
+- peerOrg1.peer_locations："peer0.org1.example.com@grpcs://" + LOCALHOST + ":30605, peer1.org1.example.com@grpcs://" + LOCALHOST + ":30606" (**注意：LOCALHOST需要改为bcs所属集群公网ip，另外必须使用grpcs，具体端口号参考sdk配置yaml文件的url**) ```private static final String LOCALHOST = "49.4.14.76"; ```；
 
-- peerOrg1.peer_locations："peer0.org1.example.com@grpcs://" + LOCALHOST + ":30605, peer1.org1.example.com@grpcs://" + LOCALHOST + ":30606" (**注意：LOCALHOST需要改为bcs所属集群公网ip，必须使用grpcs，具体端口号参考sdk配置yaml文件的url**)
+- peerOrg1.orderer_locations："orderer.example.com@grpcs://" + LOCALHOST + ":30805"，这里orderer端口号默认是30805，具体以yaml文件的orderers的url里的端口为准，url一般为 grpcs://orderer-xxx-0.orderer-xxx.default.svc.cluster.local:30805；
 
-- 
+- peerOrg1.eventhub_locations："peer0.org1.example.com@grpcs://" + LOCALHOST + ":30705,peer1.org1.example.com@grpcs://" + LOCALHOST + ":30706"，
 
 3）	关于TLS配置在函数
 private Properties getEndPointProperties(final String type, final String name) {}
