@@ -10,22 +10,11 @@ github地址：https://github.com/hyperledger/fabric-sdk-java
 <img src="https://github.com/berryjam/fabric-learning/blob/master/sdk_usage_pic/cluster_ip.png?raw=true">
 </div>
 
-1.	下载fabric-SDK-java，```git clone git@github.com:hyperledger/fabric-sdk-java.git```,不要使用下载压缩包的方式，运行会有问题。
+1.	下载fabric-SDK-java，```git clone git@github.com:hyperledger/fabric-sdk-java.git```
 
 2.	配置mvn
-
-3.	pom.xml添加如下依赖：
-
-```
-<dependency>
-        <groupId>org.hyperledger.fabric-sdk-java</groupId>
-        <artifactId>fabric-sdk-java</artifactId>
-        <version>1.0.1</version>
-</dependency>
-```
  
- 
-4.	修改配置文件
+3.	修改配置文件
 
 官方示例仅提供单元测试，所有相关配置均写死在代码中，正式开发时可以从network-config.yaml配置文件读取。此处仅说明如何修改以成功运行测试用例。
 
@@ -53,19 +42,19 @@ private Properties getEndPointProperties(final String type, final String name) {
 
 	其他相关配置基本在该文件及后面的测试用例文件，可根据需要自行修改。
   
-5.	证书拷贝
+4.	证书拷贝
 
 目录：src\test\fixture\sdkintegration\e2e-2Orgs\channel
 
 删除原始证书，拷贝自己的证书。
 
-6.	测试用例
+5.	测试用例
 
 官方提供了完成的测试用例 End2endIT.java
 
 改用例包含了create channel、join channel、insta chaincode、instantitate chaincode、invoke、query等所有相关操作，该配置是按照fabric官方环境搭建指导文档配置。运行在我们的环境会有一些小问题，如果仅需要invoke和query功能，可参考下面自己实现的用例。
  
-demo代码：[SendTx.java](https://github.com/berryjam/fabric-learning/blob/master/SendTx.java)
+demo代码：[SendTx.java](https://github.com/berryjam/fabric-learning/blob/master/SendTx.java)，把SendTx.java文件放到src\test\java\org\hyperledger\fabric\sdkintegration下面。
 
 该测试用例测试的是example02的chaincode，若测试该chaincode修改最前面的一些参数信息即可运行。若测试其他chaincode，修改invoke()、query()函数的fcn及args即可。
 完成修改后run setup()函数即可进行测试。
