@@ -72,6 +72,7 @@ demo代码：[SendTx.java](https://github.com/berryjam/fabric-learning/blob/mast
 
 1.```unable to find valid certification path to requested target```，jdk缺少bcs实例节点的根证书，需要把tls/ca.crt安装到jdk里。
 
-2.****
+2.```java.lang.RuntimeException: Missing cert file for: peer-ea24fef7f9427f8086859fad278c7748e316b24c-0.peer-ea24fef7f9427f8086859fad278c7748e316b24c.default.svc.cluster.local. Could not find at location: fabric-sdk-java/src/test/fixture/sdkintegration/e2e-2Orgs/v1.0/crypto-config/peerOrganizations/peer-ea24fef7f9427f8086859fad278c7748e316b24c.default.svc.cluster.local/peers/peer-ea24fef7f9427f8086859fad278c7748e316b24c-0.peer-ea24fef7f9427f8086859fad278c7748e316b24c.default.svc.cluster.local/tls/ca.crt``` ，sdk缺少证书，需要在创建相应的目录，并把msp、tls的证书拷贝到所创建的目录。
 
+3.```First received frame was not SETTINGS. Hex dump for first 5 bytes ```，一般是因为没有把TestConfig.java的配置不对，没有把grpc设置为grpcs，或者ip、port与sdk的yaml文件的ip、port不一致，解决方式参考上面第3节。
 
