@@ -1,5 +1,5 @@
 ### fabric-sdk-java使用指导
-	本文档指导说明成功运行一个SDK测试用例，github上提供了使用说明，该指导文档以官方说明为基础做简单修改，不同版本使用方式可能有细微差别，仅供参考。
+	本文档指导说明成功运行一个SDK测试用例，支持app通过sdk直连公有云的bcs实例，github上提供了使用说明，该指导文档以官方说明为基础做简单修改，不同版本使用方式可能有细微差别，仅供参考。
 github地址：https://github.com/hyperledger/fabric-sdk-java
 
 使用步骤如下
@@ -25,9 +25,17 @@ github地址：https://github.com/hyperledger/fabric-sdk-java
 
 修改文件：src\test\java\org\hyperledger\fabric\sdk\testutils\TestConfig.java
 
-1）	修改100行左右peer、orderer的IP、端口等信息即可运行。
+1）	修改100行左右peer、orderer的IP、port、mspid等信息即可运行。
 
-2）	若TLS打开，需配置成grpcs，若TLS关闭需配置成grpc
+2）	当前公有云的环境只支持grcps方式，ip和port可以通过下载SDK配置文件来确定，ip为bcs实例所属的集群公网ip，而peer的port一般从30605开始。具体可参考下图以及相关字段说明。
+
+
+
+- peerOrg1.mspid：ea24fef7f9427f8086859fad278c7748e316b24cMSP（根据sdk配置内容修改，对应sdk的yaml文件的mspid）
+
+- peerOrg1.peer_locations："peer0.org1.example.com@grpcs://" + LOCALHOST + ":30605, peer1.org1.example.com@grpcs://" + LOCALHOST + ":30606" (**注意：LOCALHOST需要改为bcs所属集群公网ip，必须使用grpcs，具体端口号参考sdk配置yaml文件的url**)
+
+- 
 
 3）	关于TLS配置在函数
 private Properties getEndPointProperties(final String type, final String name) {}
