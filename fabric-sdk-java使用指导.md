@@ -3,8 +3,14 @@
 github地址：https://github.com/hyperledger/fabric-sdk-java
 
 使用步骤如下
-  
-1.	下载fabric-SDK-java
+
+0.      在公有云上面已经订购了bcs，并且保证bcs实例所属集群的公网ip能够ping通，ip点击"通道管理"-"查看节点"来获取，如下图。如果不能ping通，请在安全组里面[添加ICMP规则](https://support.huaweicloud.com/usermanual-vpn/zh-cn_topic_0035557721.html)。
+
+<div align="center">
+<img src="https://github.com/berryjam/fabric-learning/blob/master/sdk_usage_pic/cluster_ip.png?raw=true">
+</div>
+
+1.	下载fabric-SDK-java，```git clone git@github.com:hyperledger/fabric-sdk-java.git```,不要使用下载压缩包的方式，运行会有问题。
 
 2.	配置mvn
 
@@ -35,11 +41,11 @@ github地址：https://github.com/hyperledger/fabric-sdk-java
 
 - peerOrg1.mspid：ea24fef7f9427f8086859fad278c7748e316b24cMSP（根据sdk配置内容修改，对应sdk的yaml文件的mspid）；
 
-- peerOrg1.peer_locations："peer0.org1.example.com@grpcs://" + LOCALHOST + ":30605, peer1.org1.example.com@grpcs://" + LOCALHOST + ":30606" (**注意：LOCALHOST需要改为bcs所属集群公网ip，另外必须使用grpcs，具体端口号参考sdk配置yaml文件的url**) ```private static final String LOCALHOST = "49.4.14.76"; ```；
+- peerOrg1.peer_locations："peer0.org1.example.com@grpcs://" + LOCALHOST + ":30605, peer1.org1.example.com@grpcs://" + LOCALHOST + ":30606" (**注意：LOCALHOST需要改为bcs所属集群公网ip，另外必须使用grpcs，具体端口号参考sdk配置yaml文件的url**) ```如：private static final String LOCALHOST = "49.4.14.76" ```；
 
 - peerOrg1.orderer_locations："orderer.example.com@grpcs://" + LOCALHOST + ":30805"，这里orderer端口号默认是30805，具体以yaml文件的orderers的url里的端口为准，url一般为 grpcs://orderer-xxx-0.orderer-xxx.default.svc.cluster.local:30805；
 
-- peerOrg1.eventhub_locations："peer0.org1.example.com@grpcs://" + LOCALHOST + ":30705,peer1.org1.example.com@grpcs://" + LOCALHOST + ":30706"，
+- peerOrg1.eventhub_locations："peer0.org1.example.com@grpcs://" + LOCALHOST + ":30705,peer1.org1.example.com@grpcs://" + LOCALHOST + ":30706"，这里的evenHub端口一般也是从30705开始，具体端口号以yaml文件的eventUrl为准；
 
 3）	关于TLS配置在函数
 private Properties getEndPointProperties(final String type, final String name) {}
