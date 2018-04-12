@@ -62,7 +62,8 @@ public class SendTx {
     private Collection<SampleOrg> testSampleOrgs;
 
     @Before
-    public void checkConfig() throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, MalformedURLException {
+    public void checkConfig() throws NoSuchFieldException, SecurityException, IllegalArgumentException,
+            IllegalAccessException, MalformedURLException {
         out("\n\n\nRUNNING: End2endIT.\n");
         configHelper.clearConfig();
         configHelper.customizeConfig();
@@ -108,18 +109,24 @@ public class SendTx {
 
                 final String sampleOrgName = sampleOrg.getName();
                 final String sampleOrgDomainName = sampleOrg.getDomainName();
-                SampleUser peerOrgAdmin = sampleStore.getMember(sampleOrgName + "Admin", sampleOrgName, sampleOrg.getMSPID(),
+                SampleUser peerOrgAdmin = sampleStore.getMember(sampleOrgName + "Admin", sampleOrgName, sampleOrg
+                                .getMSPID(),
                         Util.findFileSk(Paths.get(testConfig.getTestChannelPath(), "crypto-config/peerOrganizations/",
-                                sampleOrgDomainName, format("/users/Admin@%s/msp/keystore", sampleOrgDomainName)).toFile()),
-                        Paths.get(testConfig.getTestChannelPath(), "crypto-config/peerOrganizations/", sampleOrgDomainName,
-                                format("/users/Admin@%s/msp/signcerts/Admin@%s-cert.pem", sampleOrgDomainName, sampleOrgDomainName)).toFile());
-                sampleOrg.setPeerAdmin(peerOrgAdmin); //A special user that can create channels, join peers and install chaincode
+                                sampleOrgDomainName, format("/users/Admin@%s/msp/keystore", sampleOrgDomainName))
+                                .toFile()),
+                        Paths.get(testConfig.getTestChannelPath(), "crypto-config/peerOrganizations/",
+                                sampleOrgDomainName,
+                                format("/users/Admin@%s/msp/signcerts/Admin@%s-cert.pem", sampleOrgDomainName,
+                                        sampleOrgDomainName)).toFile());
+                sampleOrg.setPeerAdmin(peerOrgAdmin); //A special user that can create channels, join peers and
+                // install chaincode
 
             }
 
             SampleOrg sampleOrg = testConfig.getIntegrationTestsSampleOrg("peerOrg1");
             Channel fooChannel = reconstructChannel(FOO_CHANNEL_NAME, client, sampleOrg);
-            ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion(CHAIN_CODE_VERSION).build();
+            ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME).setVersion
+                    (CHAIN_CODE_VERSION).build();
             invoke(client, fooChannel, sampleOrg, chaincodeID);
             query(client, fooChannel, chaincodeID);
 
@@ -141,7 +148,7 @@ public class SendTx {
             transactionProposalRequest.setChaincodeID(chaincodeID);
             transactionProposalRequest.setFcn("invoke");
             transactionProposalRequest.setProposalWaitTime(testConfig.getProposalWaitTime());
-            transactionProposalRequest.setArgs(new String[] {"a", "b", "10"});
+            transactionProposalRequest.setArgs(new String[]{"a", "b", "10"});
 
             Map<String, byte[]> tm2 = new HashMap<>();
             tm2.put("HyperLedgerFabric", "TransactionProposalRequest:JavaSDK".getBytes(UTF_8));
@@ -151,10 +158,12 @@ public class SendTx {
 
             out("sending transactionProposal to all peers with arguments: move(a,b,100)");
 
-            Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposal(transactionProposalRequest, channel.getPeers());
+            Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposal
+                    (transactionProposalRequest, channel.getPeers());
             for (ProposalResponse response : transactionPropResp) {
                 if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
-                    out("Successful transaction proposal response Txid: %s from peer %s", response.getTransactionID(), response.getPeer().getName());
+                    out("Successful transaction proposal response Txid: %s from peer %s", response.getTransactionID()
+                            , response.getPeer().getName());
                     successful.add(response);
                 } else {
                     failed.add(response);
@@ -163,9 +172,11 @@ public class SendTx {
 
             // Check that all the proposals are consistent with each other. We should have only one set
             // where all the proposals above are consistent.
-            Collection<Set<ProposalResponse>> proposalConsistencySets = SDKUtils.getProposalConsistencySets(transactionPropResp);
+            Collection<Set<ProposalResponse>> proposalConsistencySets = SDKUtils.getProposalConsistencySets
+                    (transactionPropResp);
             if (proposalConsistencySets.size() != 1) {
-                fail(format("Expected only one set of consistent proposal responses but got %d", proposalConsistencySets.size()));
+                fail(format("Expected only one set of consistent proposal responses but got %d",
+                        proposalConsistencySets.size()));
             }
 
             out("Received %d transaction proposal responses. Successful+verified: %d . Failed: %d",
@@ -181,7 +192,8 @@ public class SendTx {
             ////////////////////////////
             // Send Transaction Transaction to orderer
             out("Sending chaincode transaction(move a,b,100) to orderer.");
-            TransactionEvent transactionEvent = channel.sendTransaction(successful).get(testConfig.getTransactionWaitTime(), TimeUnit.SECONDS);
+            TransactionEvent transactionEvent = channel.sendTransaction(successful).get(testConfig
+                    .getTransactionWaitTime(), TimeUnit.SECONDS);
 
             assertTrue(transactionEvent.isValid()); // must be valid to be here.
             out("Finished transaction with transaction id %s", transactionEvent.getTransactionID());
@@ -197,7 +209,7 @@ public class SendTx {
         try {
             out("Now query chaincode for the value of b.");
             QueryByChaincodeRequest queryByChaincodeRequest = client.newQueryProposalRequest();
-            queryByChaincodeRequest.setArgs(new String[] {"b"});
+            queryByChaincodeRequest.setArgs(new String[]{"b"});
             queryByChaincodeRequest.setFcn("query");
             queryByChaincodeRequest.setChaincodeID(chaincodeID);
 
@@ -206,15 +218,18 @@ public class SendTx {
             tm2.put("method", "QueryByChaincodeRequest".getBytes(UTF_8));
             queryByChaincodeRequest.setTransientMap(tm2);
 
-            Collection<ProposalResponse> queryProposals = channel.queryByChaincode(queryByChaincodeRequest, channel.getPeers());
+            Collection<ProposalResponse> queryProposals = channel.queryByChaincode(queryByChaincodeRequest, channel
+                    .getPeers());
             for (ProposalResponse proposalResponse : queryProposals) {
                 if (!proposalResponse.isVerified() || proposalResponse.getStatus() != ProposalResponse.Status.SUCCESS) {
-                    fail("Failed query proposal from peer " + proposalResponse.getPeer().getName() + " status: " + proposalResponse.getStatus() +
+                    fail("Failed query proposal from peer " + proposalResponse.getPeer().getName() + " status: " +
+                            proposalResponse.getStatus() +
                             ". Messages: " + proposalResponse.getMessage()
                             + ". Was verified : " + proposalResponse.isVerified());
                 } else {
                     String payload = proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
-                    out("Query payload of b from peer %s, Query Result: %s", proposalResponse.getPeer().getName(), payload);
+                    out("Query payload of b from peer %s, Query Result: %s", proposalResponse.getPeer().getName(),
+                            payload);
                 }
             }
         } catch (Exception e) {
@@ -245,7 +260,7 @@ public class SendTx {
             }
 
             newChannel.addPeer(peer);
-            sampleOrg.addPeer(peer);
+//            sampleOrg.addPeer(peer);
         }
 
         for (String eventHubName : sampleOrg.getEventHubNames()) {
@@ -255,8 +270,8 @@ public class SendTx {
         }
 
         newChannel.initialize();
-        newChannel.setTransactionWaitTime(testConfig.getTransactionWaitTime());
-        newChannel.setDeployWaitTime(testConfig.getDeployWaitTime());
+//        newChannel.setTransactionWaitTime(testConfig.getTransactionWaitTime());
+//        newChannel.setDeployWaitTime(testConfig.getDeployWaitTime());
 
         return newChannel;
     }
