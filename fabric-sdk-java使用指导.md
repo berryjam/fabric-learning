@@ -18,7 +18,7 @@ github地址：https://github.com/hyperledger/fabric-sdk-java
 
 官方示例仅提供单元测试，所有相关配置均写死在代码中，正式开发时可以从network-config.yaml配置文件读取。此处仅说明如何修改以成功运行测试用例。
 
-修改文件：src\test\java\org\hyperledger\fabric\sdk\testutils\TestConfig.java
+修改文件：src\test\java\org\hyperledger\fabric\sdk\testutils\TestConfig.java,具体修改内容可参考[TestConfig.java](https://github.com/berryjam/fabric-learning/blob/master/TestConfig.java)
 
 1）	修改100行左右peer、orderer的IP、port、mspid等信息即可运行。
 
