@@ -38,7 +38,7 @@ github地址：https://github.com/hyperledger/fabric-sdk-java
 
 3）	关于TLS配置在函数
 private Properties getEndPointProperties(final String type, final String name) {}
-默认使用的是server.crt，修改成ca.crt也可以运行，可根据需要自行配置。
+把server.crt，修改成ca.crt。
 
 	其他相关配置基本在该文件及后面的测试用例文件，可根据需要自行修改。
   
@@ -48,7 +48,14 @@ private Properties getEndPointProperties(final String type, final String name) {
 
 删除原始证书，拷贝自己的证书。
 
-5.	测试用例
+5.      把peer和orderer的根证书安装到jdk，否则会报以下错误。其中peer和orderer的根证书在tls/ca.crt,如果使用intellij运行，那么请参考[intellij安装证书](https://intellij-support.jetbrains.com/hc/en-us/community/posts/115000094584-IDEA-Ultimate-2016-3-4-throwing-unable-to-find-valid-certification-path-to-requested-target-when-trying-to-refresh-gradle)把tls/ca.crt安装到对应的jdk目录下面。如果使用命令行方式运行，请参考[jdk安装证书](https://blog.csdn.net/wn_hello/article/details/71600988)。
+
+```
+unable to find valid certification path to requested target
+```
+
+
+6.	测试用例
 
 官方提供了完成的测试用例 End2endIT.java
 
@@ -60,3 +67,11 @@ demo代码：[SendTx.java](https://github.com/berryjam/fabric-learning/blob/mast
 完成修改后run setup()函数即可进行测试。
 
 注：reconstructChannel()函数为初始化SDK的client及channel。
+
+### 常见问题
+
+1.```unable to find valid certification path to requested target```，jdk缺少bcs实例节点的根证书，需要把tls/ca.crt安装到jdk里。
+
+2.****
+
+
